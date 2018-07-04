@@ -42,7 +42,7 @@ import (
  	connent := database["USER"] + ":" + database["PASSWORD"] + "@tcp(" + database["HOST"] + ":" + database["PORT"] + ")/" + database["NAME"] + "?charset=utf8"
  	orm.RegisterDataBase("DB"+database["NAME"],"mysql",connent)
  	orm.RegisterModel(
- 		new(ContentType)
+ 		new(ContentType),
 	)
 
  }
