@@ -1,5 +1,6 @@
 package auth
 
+import "strings"
 
 /*
 The permissions system provides a way to assign permissions to specific
@@ -11,6 +12,7 @@ type Permission struct {
 	Content_type *ContentType   `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
 	Codename      string        `orm:"size(100)"`
 	Groups       []*Permission  `orm:"reverse(many)"`
+	Users        []*User        `orm:"reverse(many)"`
 }
 
 func (permission *Permission) TableName() string  {
@@ -34,8 +36,10 @@ func (persission *Permission) natural_key() []string {
 
 type Group struct {
 	Id           int64          `orm:"pk;auto"`
-	Name         string         `orm:"size(80)"`
+	Name         string         `orm:"size(80);unique"`
+	Note         string         `orm:"size(225)"`
 	Permissions  []*Permission  `orm:"rel(m2m)"`
+	Users        []*User        `orm:"reverse(many)"`
 
 }
 
@@ -43,24 +47,49 @@ func (group *Group) TableName() string {
 	return "auth_group"
 }
 
-func (group *Group) TableUnique() [][]string {
 
-	 return [][]string{
-	 	[]string{"Name"},
-	 }
-}
 
-/*
-A mixin class that adds the fields and methods necessary to support
-     Group and Permission model using the ModelBackend.
- */
+
 type User struct {
-	Username        string
-	Email           string
-
-    IsSuperuser     bool            `orm:"default(false)"`
-
-    Groups          []*Group        `orm:"rel(m2m)"`
-	UserPermissions []*Permission   `orm:"rel(m2m)"`
+    AbstractBaseUser
+	Content_type    *ContentType       `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
+    Groups          []*Group           `orm:"rel(m2m)"`
+	Permissions     []*Permission      `orm:"rel(m2m)"`
 }
 
+func (user *User) TableName() string {
+	return "user_user"
+}
+
+
+
+func (user *User) GetUsername() string{
+	return user.Username
+}
+
+
+func (user *User) IsAnonymous() bool {
+	return false
+}
+
+
+func (user *User) IsAuthenticated() bool {
+	return true
+}
+
+
+func (user *User) SetPassword(string) bool {
+	// TODO
+	return false
+}
+
+
+func (user *User) GetFullName()  string {
+
+	full_name := strings.Join([]string{user.FirstName,user.LastName}," ")
+	return strings.Trim(full_name," ")
+}
+
+func (user *User) GerShortName() string {
+	return user.FirstName
+}
