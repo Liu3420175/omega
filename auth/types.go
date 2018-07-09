@@ -55,3 +55,34 @@ type UserManager interface {
      */
      EmailUser(string,string,string) error
 }
+
+
+
+type Haser interface {
+
+	// get salt data
+	Salt() string
+
+	//Checks if the given password is correct
+	Verify(password string, encoded string) bool
+
+	/*
+	Creates an encoded database value
+	The result is normally formatted as "algorithm$salt$hash" and
+	must be fewer than 128 characters.
+	 */
+	Encode(password string, salt string) string
+
+    /*
+    Returns a summary of safe values
+
+    The result is a map-value and will be used where the password field
+        must be displayed to construct a safe representation of the password.
+     */
+	AafeSummary(encoded string) map[string]string
+
+
+	MustUpdate(encoded string) bool
+
+	HardenRuntime(password string, encoded string)
+}
