@@ -15,6 +15,11 @@ type PBKDF2PasswordHasher struct {
 }
 
 
-func (pbkdf *PBKDF2PasswordHasher) Salt(){
+func (pbkdf *PBKDF2PasswordHasher) Salt() string{
+     return GetRandomString(12)
+}
 
+
+func (pbkdf *PBKDF2PasswordHasher) Encode(password string, salt string,iterations int32) string {
+    
 }

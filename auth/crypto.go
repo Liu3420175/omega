@@ -33,7 +33,7 @@ func GetRandomString(length int) string {
 	buf.WriteString(strings.Join(AllowedChars,""))
 	buf.WriteString(strconv.FormatInt(timesamp,10))
 	buf.WriteString(conf.SECRETKEY)
-	s := buf.String()
+	s := buf.String() // ping jie string
 	haser := sha256.New()
 	haser.Write([]byte(s))
 	shash := haser.Sum(nil)

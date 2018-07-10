@@ -71,7 +71,7 @@ type Haser interface {
 	The result is normally formatted as "algorithm$salt$hash" and
 	must be fewer than 128 characters.
 	 */
-	Encode(password string, salt string) string
+	Encode(password string, salt string,iterations int32) string
 
     /*
     Returns a summary of safe values
