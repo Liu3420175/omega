@@ -9,6 +9,8 @@ import (
 	"crypto/sha256"
 	"strconv"
 	"strings"
+	"hash"
+	"crypto/hmac"
 )
 
 
@@ -48,4 +50,53 @@ func GetRandomString(length int) string {
 		buf2.WriteString(tmp)
 	}
 	return buf2.String()
+}
+
+
+
+
+func Pbkdf2(password string, salt string, iterations int, dklen int,digest func() hash.Hash) []byte {
+	/*
+	digest 是一个伪随机函数，例如HASH_HMAC函数，它会输出长度为hLen的结果。
+    password是用来生成密钥的原文密码。
+    salt是一个加密用的盐值。
+    iterations是进行重复计算的次数。
+    dklen是期望得到的密钥的长度。
+	基本原理参见网上资料
+	 */
+    if iterations == 0 {
+    	iterations = 36000
+	}
+    Password := []byte(password)
+    Salt := []byte(salt)
+    prf := hmac.New(digest,Password)
+    haslen := prf.Size() // returns the number of bytes Sum will return
+    numBolcks := (dklen + haslen - 1) / haslen
+
+    var buf [4]byte
+    dk := make([]byte,0,numBolcks * haslen)
+    U := make([]byte,haslen)
+
+    for block := 1;block <= numBolcks; block++ {
+    	prf.Reset()
+    	prf.Write(Salt)
+		buf[0] = byte(block >> 24)
+		buf[1] = byte(block >> 16)
+		buf[2] = byte(block >> 8)
+		buf[3] = byte(block)
+		prf.Write(buf[:4])
+		dk = prf.Sum(dk)
+		T := dk[len(dk)-haslen:]
+		copy(U, T)
+		for n := 2; n <= iterations; n++ {
+			prf.Reset()
+			prf.Write(U)
+			U = U[:0]
+			U = prf.Sum(U)
+			for x := range U {
+				T[x] ^= U[x]
+			}
+		}
+	}
+	return dk[:dklen]
 }
