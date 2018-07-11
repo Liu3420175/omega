@@ -79,7 +79,7 @@ type Haser interface {
     The result is a map-value and will be used where the password field
         must be displayed to construct a safe representation of the password.
      */
-	AafeSummary(encoded string) map[string]string
+	SafeSummary(encoded string) map[string]string
 
 
 	MustUpdate(encoded string) bool
