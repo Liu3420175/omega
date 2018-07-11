@@ -1,6 +1,9 @@
 package auth
 
-import "strings"
+import (
+	"strings"
+	"github.com/astaxie/beego/orm"
+)
 
 /*
 The permissions system provides a way to assign permissions to specific
@@ -78,11 +81,23 @@ func (user *User) IsAuthenticated() bool {
 }
 
 
-func (user *User) SetPassword(string) bool {
+func (user *User) SetPassword(raw_password string ) bool {
 	// TODO
-	return false
+	o := orm.Ormer()
+	user.Password = MakePassword(raw_password,"")
+	_,err := o.Update(user)
+	if err == nil {
+		return true
+	}else{
+		return false
+	}
+
 }
 
+
+func (user *User) CheckPassword(raw_password string) bool{
+	return CheckPassword(raw_password,user.Password)
+}
 
 func (user *User) GetFullName()  string {
 
@@ -93,3 +108,4 @@ func (user *User) GetFullName()  string {
 func (user *User) GerShortName() string {
 	return user.FirstName
 }
+

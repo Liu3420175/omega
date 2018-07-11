@@ -54,6 +54,7 @@ type UserManager interface {
     Sends an email to this User.
      */
      EmailUser(string,string,string) error
+
 }
 
 

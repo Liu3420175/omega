@@ -5,10 +5,53 @@ import (
 	"encoding/base64"
 	"strconv"
 	"hash"
+	"crypto/sha256"
 )
 
 var UNUSABLE_PASSWORD_PREFIX = '!'  // This will never be a valid encoded hash
 var UNUSABLE_PASSWORD_SUFFIX_LENGTH = 40  // number of random chars to add after UNUSABLE_PASSWORD_PREFIX
+
+
+//func GetHasher()
+
+
+func CheckPassword(password,encoded string ) bool {
+	/*
+	Returns a boolean of whether the raw password matches the three
+    part encoded digest.
+
+    If setter is specified, it'll be called when you need to
+    regenerate the password.
+	 */
+
+	p := PBKDF2PasswordHasher{
+		Iterations:36000,
+		Algorithm:"pbkdf2_sha256",
+		Digest:sha256.New,
+	}
+	return p.Verify(password,encoded)
+
+}
+
+
+func MakePassword(password, salt string) string {
+    /*
+    Turn a plain-text password into a hash for database storage
+     */
+    //if conf.PASSWORDHASHERS == "pbkdf2_sha256"{
+    p := PBKDF2PasswordHasher{
+    		Iterations:36000,
+    		Algorithm:"pbkdf2_sha256",
+    		Digest:sha256.New,
+    	}
+    if len(salt) == 0{
+    	salt = GetRandomString(UNUSABLE_PASSWORD_SUFFIX_LENGTH)
+	}
+	return p.Encode(password,salt,p.Iterations)
+	//}
+}
+
+
 
 func ConstantTtimeCompare(val1, val2 string) bool {
 	/*
