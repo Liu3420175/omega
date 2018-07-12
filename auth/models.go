@@ -3,6 +3,8 @@ package auth
 import (
 	"strings"
 	"github.com/astaxie/beego/orm"
+	"time"
+	"github.com/pkg/errors"
 )
 
 /*
@@ -83,7 +85,7 @@ func (user *User) IsAuthenticated() bool {
 
 func (user *User) SetPassword(raw_password string ) bool {
 	// TODO
-	o := orm.Ormer()
+	o := orm.NewOrm()
 	user.Password = MakePassword(raw_password,"")
 	_,err := o.Update(user)
 	if err == nil {
@@ -109,3 +111,56 @@ func (user *User) GerShortName() string {
 	return user.FirstName
 }
 
+
+func create_user(fields map[string]string) User {
+	var user User
+    username := fields["Username"]
+    if len(username) == 0{
+    	panic("The given username must be set")
+	}
+	email := fields["Email"]
+	if len(email) == 0{
+		panic("The given email must be set")
+	}
+    password := fields["Password"]
+    user.Password = MakePassword(password,"")
+    user.Username = username
+    user.Email = email
+    user.FirstName = fields["FirstName"]
+    user.LastName = fields["LastName"]
+    user.Phone = fields["Phone"]
+    user.DateJoined = time.Now()
+    user.IsActive = true
+
+    return user
+}
+
+
+func CreateUser(fields map[string]string) (*User,error ){
+	user := create_user(fields)
+	user.IsStaff = false
+	user.IsSuperuser = false
+	o := orm.NewOrm()
+    _,err := o.Insert(&user)
+    if err == nil {
+    	return &user,nil
+	}else{
+		// TODO
+		return nil,errors.New("Create Error" + err.Error())
+	}
+}
+
+
+func CreateSuperuser (fields map[string]string) (*User,error ) {
+	user := create_user(fields)
+	user.IsStaff = true
+	user.IsSuperuser = true
+	o := orm.NewOrm()
+	_,err := o.Insert(&user)
+	if err == nil {
+		return &user,nil
+	}else{
+		// TODO
+		return nil,errors.New("Create Error" + err.Error())
+	}
+}

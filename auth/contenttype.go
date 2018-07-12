@@ -44,5 +44,4 @@ import (
  	orm.RegisterModel(
  		new(ContentType),
 	)
- 	orm.NewOrm()
  }
