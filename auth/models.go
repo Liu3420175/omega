@@ -56,10 +56,21 @@ func (group *Group) TableName() string {
 
 
 type User struct {
-    AbstractBaseUser
-	Content_type    *ContentType       `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
-    Groups          []*Group           `orm:"rel(m2m)"`
-	Permissions     []*Permission      `orm:"rel(m2m)"`
+	Id int64 					    `orm:"pk;auto"`
+	Username        string          `orm:"sieze(150);unique"`
+	Email           string          `orm:"size(128),unique"`
+	FirstName       string          `orm:"size(30)"`
+	LastName        string          `orm:"size(30)"`
+	Password        string          `orm:"size(128)"`
+	Phone           string          `orm:"size(20)"`
+	LastLogin       time.Time       `orm:"auto_now_add;type(datetime)"`
+	DateJoined      time.Time       `orm:"auto_now_add;type(datetime)"`
+	IsActive        bool            `orm:"default(true)"`
+	IsStaff         bool            `orm:"default(false)"`
+	IsSuperuser     bool            `orm:"default(false)"`
+	Content_type    *ContentType    `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
+    Groups          []*Group        `orm:"rel(m2m)"`
+	Permissions     []*Permission   `orm:"rel(m2m)"`
 }
 
 func (user *User) TableName() string {
@@ -111,6 +122,12 @@ func (user *User) GerShortName() string {
 	return user.FirstName
 }
 
+
+func (user *User) GetGroupPermissions() []string{
+	var permissions  []string
+
+	return permissions
+}
 
 func create_user(fields map[string]string) User {
 	var user User
