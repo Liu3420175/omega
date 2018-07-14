@@ -2,7 +2,6 @@ package auth
 
 import (
 	"time"
-    "../conf"
 	"bytes"
 	"encoding/binary"
 	"math/rand"
@@ -11,6 +10,10 @@ import (
 	"strings"
 	"hash"
 	"crypto/hmac"
+
+	"../conf"
+	"crypto/sha1"
+	"encoding/hex"
 )
 
 
@@ -53,6 +56,26 @@ func GetRandomString(length int) string {
 }
 
 
+
+/*
+ Returns the HMAC-SHA1 of 'value', using a key generated from key_salt and a
+    secret (which defaults to settings.SECRET_KEY).
+
+    A different key_salt should be passed in for every application of HMAC.
+ */
+func SaltedHhmac(key_salt, value, secret string) string{
+	if len(secret) == 0 {
+		secret = conf.SECRETKEY
+	}
+	keysalt := ForceBytes(key_salt)
+	secret_ := ForceBytes(secret)
+	mac := hmac.New(sha1.New,keysalt)
+	mac.Write(secret_)
+	mac.Write(ForceBytes(value))
+	hash_ := mac.Sum(nil)
+
+	return hex.EncodeToString(hash_) // 转换成16进制字符
+}
 
 
 func Pbkdf2(password string, salt string, iterations int, dklen int,digest func() hash.Hash) []byte {
