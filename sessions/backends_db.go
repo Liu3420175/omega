@@ -25,7 +25,7 @@ func (store *SessionStore) _Session() map[string]string{
 
 func (store *SessionStore) Decode(sessiondata string) map[string]string {
 
-
+    return  nil
 }
 
 
@@ -38,8 +38,10 @@ func (store *SessionStore) Hash(value string) string {
 //Returns the given session dictionary serialized and encoded as a string.
 func (store *SessionStore) Encode(session_map map[string]string) string {
 	serialized,_ := json.Marshal(session_map)
-	hash_ := store.Hash(string(serialized))
-	hashs := base64.StdEncoding.EncodeToString([]byte(hash_))
+	serialized_str := string(serialized)
+	serialized_hash := store.Hash(serialized_str)
+	s := serialized_hash + ":" + serialized_str
+	hashs := base64.StdEncoding.EncodeToString([]byte(s))
 	return hashs
 }
 
@@ -50,4 +52,5 @@ func (store *SessionStore) Load() map[string] string{
 	if err == nil{
 
 	}
+	return nil
 }
