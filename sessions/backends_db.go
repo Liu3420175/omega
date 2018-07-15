@@ -6,6 +6,7 @@ import (
 	"../auth"
 	"encoding/json"
 	"encoding/base64"
+	"strings"
 )
 
 type SessionStore struct {
@@ -24,8 +25,15 @@ func (store *SessionStore) _Session() map[string]string{
 
 
 func (store *SessionStore) Decode(sessiondata string) map[string]string {
-
-    return  nil
+	encoded_data,_ := base64.StdEncoding.DecodeString(sessiondata)
+	encoded_data_str := string(encoded_data)
+	hash_serialized := strings.Split(encoded_data_str,":")
+	haser := hash_serialized[0] + ":"
+	serialized_str := strings.Trim(encoded_data_str,haser)
+	//TODO 有待优化需要验证
+	var result map[string]string
+	json.Unmarshal([]byte(serialized_str),&result)
+    return  result
 }
 
 
