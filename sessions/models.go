@@ -4,7 +4,7 @@ import "time"
 
 type Session struct {
 	SessionKey     string         `orm:"pk"`
-	SessionDdata   string
+	SessionData   string
 	ExpireDate     time.Time      `orm:"type(datetime)"`
 }
 

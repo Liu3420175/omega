@@ -7,20 +7,32 @@ import (
 	"encoding/json"
 	"encoding/base64"
 	"strings"
+	"time"
 )
 
 type SessionStore struct {
 	SessionKey     string
 	Accessed       bool
 	Modified       bool
+	SessionCache   map[string]string
 }
 
 
 
 func (store *SessionStore) _Session() map[string]string{
     store.Accessed = true
-    return nil
+    if len(store.SessionCache) != 0{
+    	return store.SessionCache
+	}
+
+    if len(store.SessionKey) == 0 {
+		store.SessionCache =  map[string]string{}
+	}else{
+		store.SessionCache = store.Load()
+	}
+	return store.SessionCache
 }
+
 
 
 
@@ -53,12 +65,93 @@ func (store *SessionStore) Encode(session_map map[string]string) string {
 	return hashs
 }
 
+
+func (store *SessionStore) Get(key string) string{
+	data := store._Session()
+	return data[key]
+}
+
+func (store *SessionStore) Pop(key string) string{
+	data := store._Session()
+	value,ok := data[key]
+	store.Modified = store.Modified ||  ok
+	delete(data,key)
+	return value
+}
+
+
+func (store *SessionStore)SetDefault(key,value string) string {
+	data := store._Session()
+	_,ok := data[key]
+	if ok {
+		return data[key]
+	}else{
+		store.Modified = true
+		store.SessionCache[key] = value
+		return value
+	}
+}
+
+
+func (store * SessionStore) Update(dict map[string]string) {
+	for key,value := range dict {
+		store.SessionCache[key] = value
+	}
+	store.Modified = true
+}
+
+
+func (store *SessionStore) HasKey(key string) bool {
+	data := store._Session()
+	_,ok := data[key]
+	return  ok
+}
+
+func (store *SessionStore) Keys() (result []string) {
+	data := store._Session()
+	for key,_ := range data {
+		result = append(result,key)
+	}
+	return
+}
+
+
+func (store *SessionStore) Values() (result []string) {
+	data := store._Session()
+	for _,value := range data {
+		result = append(result,value)
+	}
+	return
+}
+
+
+func (store *SessionStore) Clear(){
+	store.Modified = true
+	store.Accessed = true
+	store.SessionCache = map[string]string{}
+}
+
+
+
+func (store *SessionStore) IsEmpty() bool {
+	return len(store.SessionCache) != 0 && len(store.SessionKey) != 0
+}
+
+
+
 func (store *SessionStore) Load() map[string] string{
 	o := orm.NewOrm()
 	session := Session{SessionKey:store.SessionKey}
 	err := o.Read(&session)
 	if err == nil{
-
+        if session.ExpireDate.Before(time.Now()){
+        	// exprired
+        	return map[string]string{}
+		}else{
+			return store.Decode(session.SessionData)
+		}
+	}else{
+		store.SessionKey = ""
+		return map[string]string{}
 	}
-	return nil
 }
