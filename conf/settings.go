@@ -14,3 +14,5 @@ var SECRETKEY = "m^a=%2su6%_f7ux8mkm9OSCAR_REQUIRED_ADDRESS_FIELDS+$*^c@&a#8)m@d
 
 
 //var PASSWORDHASHERS = "pbkdf2_sha256"
+
+var SESSION_COOKIE_AGE = 7 * 24 * 60 * 60

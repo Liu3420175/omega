@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"../auth"
+	"../conf"
 	"encoding/json"
 	"encoding/base64"
 	"strings"
@@ -63,6 +64,20 @@ func (store *SessionStore) Encode(session_map map[string]string) string {
 	s := serialized_hash + ":" + serialized_str
 	hashs := base64.StdEncoding.EncodeToString([]byte(s))
 	return hashs
+}
+
+
+func (store *SessionStore) Delete(session_key string) {
+    if len(session_key) == 0{
+    	if len(store.SessionKey) == 0{
+    		return
+		}
+		session_key = store.SessionKey
+	}
+
+	o := orm.NewOrm()
+	session := Session{SessionKey:session_key}
+	o.Delete(&session)
 }
 
 
@@ -154,4 +169,87 @@ func (store *SessionStore) Load() map[string] string{
 		store.SessionKey = ""
 		return map[string]string{}
 	}
+}
+
+
+
+func (store *SessionStore) _GetNewSessionKey() (data string){
+	for {
+		data := auth.GetRandomString(32)
+		o := orm.NewOrm()
+		session := Session{SessionKey:data}
+		err := o.Read(&session)
+		if err != nil{
+			break
+			}
+		}
+	return data
+
+}
+
+func (store *SessionStore) _GetOrCreateSessionKey() string{
+	if len(store.SessionKey) == 0{
+		session_key := store._GetNewSessionKey()
+		store.SessionKey = session_key
+	}
+	return store.SessionKey
+}
+
+func (store *SessionStore) _GetSessionKey() string {
+	return store.SessionKey
+}
+
+
+
+func (store *SessionStore) GetExpiryAge() int {
+	/*
+	et the number of seconds until the session expires.
+
+        Optionally, this function accepts `modification` and `expiry` keyword
+        arguments specifying the modification and expiry of the session.
+	 */
+	 return conf.SESSION_COOKIE_AGE
+}
+
+
+func GetDefaultSessionExpiryDate() (expiry_date time.Time) {
+	timer := time.Now()
+	ns := conf.SESSION_COOKIE_AGE * 1000 * 1000 * 1000
+	expiry_date = timer.Add(time.Duration(ns) )
+	return expiry_date
+}
+
+func (store *SessionStore) GetExpiryDate(kwargs map[string]interface{}) (expiry_date time.Time) {
+	expiry,ok := kwargs["expiry"]
+	if ok {
+		switch expiry.(type) {
+		case time.Time:
+			expiry_date = expiry.(time.Time)
+		case int,int8,int16,int32,int64:
+			timer := time.Now()
+			ns := expiry.(int64) * 1000 * 1000 * 1000
+			expiry_date = timer.Add(time.Duration(ns) )
+		case time.Duration:
+			timer := time.Now()
+			expiry_date = timer.Add(expiry.(time.Duration) )
+
+		default:
+			expiry_date = GetDefaultSessionExpiryDate()
+		}
+	}else{
+		expiry_date  = GetDefaultSessionExpiryDate()
+	}
+	return expiry_date
+}
+
+
+
+func (store *SessionStore) Flush(){
+	/*
+	 Removes the current session data from the database and regenerates the
+        key.
+	 */
+    store.Clear()
+    store.Delete("")
+    store.SessionKey = ""
 }
