@@ -253,3 +253,9 @@ func (store *SessionStore) Flush(){
     store.Delete("")
     store.SessionKey = ""
 }
+
+func (store SessionStore) Create() {
+	for {
+		store.SessionKey = store._GetNewSessionKey()
+	}
+}
