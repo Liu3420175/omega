@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"strings"
 	"time"
+	"strconv"
 )
 
 type SessionStore struct {
@@ -254,8 +255,44 @@ func (store *SessionStore) Flush(){
     store.SessionKey = ""
 }
 
-func (store SessionStore) Create() {
+
+func (store *SessionStore) CreateModelInstance(data map[string]string) *Session {
+	/*
+	Return a new instance of the session model object, which represents the
+        current session state. Intended to be used for saving the session data
+        to the database.
+	 */
+	 o := orm.NewOrm()
+	 var new_session Session
+	 new_session.SessionKey = store._GetNewSessionKey()
+	 new_session.ExpireDate = store.GetExpiryDate(nil)
+	 new_session.SessionData = store.Encode(data)
+	 user_id,_  := strconv.Atoi(store.Get(auth.SESSION_KEY))
+	 new_session.UserId = int64(user_id)
+	 o.Insert(&new_session)
+	 return &new_session
+}
+
+
+
+func (store *SessionStore) Create() error{
 	for {
 		store.SessionKey = store._GetNewSessionKey()
+		err := store.Save()
+		if err != nil{
+			continue
+		}
+		store.Modified = true
+		return nil
 	}
+}
+
+
+func (store *SessionStore) Save() error {
+    if len(store._GetSessionKey()) == 0 {
+        return store.Create()
+	}
+	data := store._Session()
+    store.CreateModelInstance(data)
+	return nil
 }
