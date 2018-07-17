@@ -6,6 +6,7 @@ record models app_label and model's name
 import (
 	"../conf"
 	"github.com/astaxie/beego/orm"
+	_ "github.com/go-sql-driver/mysql"
 )
 
  type ContentType struct {
