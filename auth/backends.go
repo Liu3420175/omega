@@ -1,6 +1,26 @@
 package auth
 
-import "github.com/astaxie/beego/orm"
+import (
+	"github.com/astaxie/beego/orm"
+
+	"github.com/astaxie/beego"
+
+)
+
+
+const (
+	SESSION_KEY = "_auth_user_id"
+	BACKEND_SESSION_KEY = "_auth_user_backend"
+	HASH_SESSION_KEY = "_auth_user_hash"
+)
+
+
+type Requester struct {
+	beego.Controller
+	user    User
+	session map[string]string
+}
+
 
 func user_can_authenticate(user User) bool{
 	return user.IsActive == true
@@ -30,6 +50,9 @@ func Authenticate(username string ,password string) *User {
 }
 
 
+
+
+
 func get_user_permissions(user User) []*Permission {
 	o := orm.NewOrm()
 	var p []*Permission
@@ -40,5 +63,24 @@ func get_user_permissions(user User) []*Permission {
 	return nil
 }
 
+func get_user_session
+
+func Login(request *Requester,user *User){
+    /*
+    Login
+     */
+
+	session_auth_hash := ""
+	if user == nil{
+		user = &request.user
+	}
+	if user != nil {
+		session_auth_hash = user.GetSessionAuthHash()
+	}
+	value , ok := request.session[SESSION_KEY]
+	if ok{
+
+	}
+}
 
 //func get_group_permissions()

@@ -14,3 +14,7 @@ func (session *Session) TableName() string  {
 	return "auth_session"
 
 }
+
+func (session *Session) String() string {
+	return "Session:" + session.SessionKey
+}
