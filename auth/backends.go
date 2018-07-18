@@ -5,6 +5,8 @@ import (
 
 	"github.com/astaxie/beego"
 
+	"strconv"
+	"../sessions"
 )
 
 
@@ -18,7 +20,7 @@ const (
 type Requester struct {
 	beego.Controller
 	user    User
-	session map[string]string
+	session sessions.SessionStore
 }
 
 
@@ -63,7 +65,7 @@ func get_user_permissions(user User) []*Permission {
 	return nil
 }
 
-func get_user_session
+
 
 func Login(request *Requester,user *User){
     /*
@@ -77,10 +79,23 @@ func Login(request *Requester,user *User){
 	if user != nil {
 		session_auth_hash = user.GetSessionAuthHash()
 	}
-	value , ok := request.session[SESSION_KEY]
+	value , ok := request.session.SessionCache[SESSION_KEY]
 	if ok{
+		user_id,_ := strconv.Atoi(value)
+		if int64(user_id) != user.Id || (len(session_auth_hash) > 0 &&
+			!ConstantTtimeCompare(request.session.SessionCache[HASH_SESSION_KEY],session_auth_hash)){
+				request.session.Flush()
+		}
 
+	}else{
+		request.session.CycleKey()
 	}
+	request.session.SessionCache[SESSION_KEY] = string(user.Id)
+	request.session.SessionCache[HASH_SESSION_KEY] = session_auth_hash
+	request.session.SessionCache[BACKEND_SESSION_KEY] = "omega.sessions.session"
+	request.user = *user
+
+	// TODO set csrf
 }
 
 //func get_group_permissions()

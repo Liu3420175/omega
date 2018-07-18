@@ -23,9 +23,10 @@ type SessionStore struct {
 
 func (store *SessionStore) _Session() map[string]string{
     store.Accessed = true
-    if len(store.SessionCache) != 0{
-    	return store.SessionCache
-	}
+    // TODO 有待优化
+    //if len(store.SessionCache) != 0{
+    //	return store.SessionCache
+	//}
 
     if len(store.SessionKey) == 0 {
 		store.SessionCache =  map[string]string{}
@@ -253,6 +254,7 @@ func (store *SessionStore) Flush(){
     store.Clear()
     store.Delete("")
     store.SessionKey = ""
+    store.SessionCache = map[string]string{}
 }
 
 
@@ -295,4 +297,18 @@ func (store *SessionStore) Save() error {
 	data := store._Session()
     store.CreateModelInstance(data)
 	return nil
+}
+
+
+func (store *SessionStore) CycleKey(){
+	/*
+	Creates a new session key, while retaining the current session data.
+	 */
+	 data := store._Session()
+	 key := store.SessionKey
+	 store.Create()
+	 store.SessionCache = data
+	 if len(key) > 0 {
+		 store.Delete(key)
+	 }
 }

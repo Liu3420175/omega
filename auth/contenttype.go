@@ -34,6 +34,10 @@ import (
  }
 
 
+ func (contenttype *ContentType) String() string {
+ 	return "ContentType:" + contenttype.AppLabel + "_" + contenttype.Model
+ }
+
 
  func init() {
 

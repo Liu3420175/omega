@@ -38,6 +38,10 @@ func (persission *Permission) natural_key() []string {
 }
 
 
+func (persission *Permission) String() string{
+	return "Permission:" + persission.Name
+}
+
 
 type Group struct {
 	Id           int64          `orm:"pk;auto"`
@@ -52,7 +56,9 @@ func (group *Group) TableName() string {
 	return "auth_group"
 }
 
-
+func (group *Group) String() string {
+	return "Group:" + group.Name
+}
 
 
 type User struct {
@@ -72,6 +78,12 @@ type User struct {
     Groups          []*Group        `orm:"rel(m2m)"`
 	Permissions     []*Permission   `orm:"rel(m2m)"`
 }
+
+
+func (user *User) String() string {
+	return "User:" + user.Email
+}
+
 
 func (user *User) TableName() string {
 	return "user_user"
@@ -129,6 +141,12 @@ func (user *User) GetGroupPermissions() []string{
 	return permissions
 }
 
+func (user *User) GetSessionAuthHash() string{
+	key_salt := "omega.auth.models.User.get_session_auth_hash"
+	return SaltedHhmac(key_salt,user.Password,"")
+}
+
+
 func create_user(fields map[string]string) User {
 	var user User
     username := fields["Username"]
@@ -151,6 +169,8 @@ func create_user(fields map[string]string) User {
 
     return user
 }
+
+
 
 
 func CreateUser(fields map[string]string) (*User,error ){
@@ -181,3 +201,5 @@ func CreateSuperuser (fields map[string]string) (*User,error ) {
 		return nil,errors.New("Create Error" + err.Error())
 	}
 }
+
+
