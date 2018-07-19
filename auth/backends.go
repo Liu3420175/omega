@@ -4,7 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"strconv"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 

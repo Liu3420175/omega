@@ -29,7 +29,17 @@ func (request *Requester)CommonResponse(code int,r interface{}){
 	return
 }
 
+func ProcessRequest(request *Requester){
+	// the first oparea
+	heard := request.Ctx.Request.Header
+	token ,ok := heard["x-token-id"]
+	if ok {
+         request.session = &sessions.SessionStore{SessionKey:token[0]}
+	}else{
+		panic("") // TODO 
+	}
 
+}
 
 func LoginRequired(request *Requester) {
 	if request.session.SessionKey == ""{
@@ -88,9 +98,43 @@ func AdminLoginRequired(request *Requester) {
 
 
 
-func RequireHttpMethods(method_list [...]string) {
-	
+func PermissionRequired(request *Requester,perm interface{}){
+	perms := []string{}
+	switch perm.(type) {
+	case string:
+		perms = append(perms,perm.(string))
+
+	case []string:
+		perms = perm.([]string)
+
+	default:
+		perms = []string{}
+	}
+    for _,v := range perms {
+    	 if request.user.GetPerm(v){
+
+		 }
+	}
+	request.CommonResponse(10007,"")
+    return
 }
+
+
+
+func RequireHttpMethods(request *Requester, method_list []string) {
+	method := request.Ctx.Request.Method
+	for _,v :=range method_list {
+		if method == v {
+
+		}
+	}
+	request.CommonResponse(10013,"")
+	return
+
+}
+
+
+
 
 
 

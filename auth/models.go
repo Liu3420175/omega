@@ -4,7 +4,7 @@ import (
 	"strings"
 	"github.com/astaxie/beego/orm"
 	"time"
-	"github.com/pkg/errors"
+	"errors"
 	"reflect"
 )
 
@@ -150,9 +150,16 @@ func (user *User) GetGroupPermissions() []string{
 	return permissions
 }
 
+
 func (user *User) GetSessionAuthHash() string{
 	key_salt := "omega.auth.models.User.get_session_auth_hash"
 	return SaltedHhmac(key_salt,user.Password,"")
+}
+
+
+func (user *User)GetPerm(perm string) bool{
+
+	return false
 }
 
 
@@ -195,6 +202,7 @@ func CreateUser(fields map[string]string) (*User,error ){
 		return nil,errors.New("Create Error" + err.Error())
 	}
 }
+
 
 
 func CreateSuperuser (fields map[string]string) (*User,error ) {
