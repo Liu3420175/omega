@@ -7,9 +7,14 @@ import (
 
 	"strconv"
 	"../sessions"
+	"github.com/pkg/errors"
 )
 
 
+var (
+
+	UserDoesNotExist = errors.New("UserDoesNotExist")
+)
 const (
 	SESSION_KEY = "_auth_user_id"
 	BACKEND_SESSION_KEY = "_auth_user_backend"
@@ -18,9 +23,10 @@ const (
 
 
 type Requester struct {
+	// TODO 我们也可以不用他的，自己jiyu http.Request封装一个
 	beego.Controller
 	user    User
-	session sessions.SessionStore
+	session *sessions.SessionStore
 }
 
 
@@ -98,4 +104,53 @@ func Login(request *Requester,user *User){
 	// TODO set csrf
 }
 
+
+func Logout(request *Requester){
+	/*
+	logout
+	 */
+	 //user := request.user
+     request.session.Flush()
+     request.user = User{}
+
+}
+
+
+func GetUser(request *Requester) (*User,error){
+
+	value ,ok := request.session.SessionCache[SESSION_KEY]
+	if ok{
+		user_id,_ := strconv.Atoi(value)
+		o := orm.NewOrm()
+		user := User{Id:int64(user_id)}
+		err := o.Read(&user)
+		if err == nil{
+			return &user,nil
+		}
+	}
+	return &User{},UserDoesNotExist
+
+}
+
+
+
+
+func UpdateSessionAuthHash(request *Requester,user *User ){
+	/*
+	Updating a user's password logs out all sessions for the user.
+
+    This function takes the current request and the updated user object from
+    which the new session hash will be derived and updates the session hash
+    appropriately to prevent a password change from logging out the session
+    from which the password was changed.
+
+	 */
+      request.session.CycleKey()
+      if CompareUser(&request.user,user){
+          request.session.SessionCache[HASH_SESSION_KEY] = user.GetSessionAuthHash()
+	  }
+	  
+}
 //func get_group_permissions()
+
+

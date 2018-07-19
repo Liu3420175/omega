@@ -101,6 +101,12 @@ func (user *User) IsAnonymous() bool {
 }
 
 
+func CompareUser(user1 *User,user2 *User) bool{
+	// TODO
+	return false
+}
+
+
 func (user *User) IsAuthenticated() bool {
 	return true
 }
