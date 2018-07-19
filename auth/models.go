@@ -74,6 +74,7 @@ type User struct {
 	DateJoined      time.Time       `orm:"auto_now_add;type(datetime)"`
 	IsActive        bool            `orm:"default(true)"`
 	IsStaff         bool            `orm:"default(false)"`
+	IsAdmin         bool            `orm:"default(false)"`
 	IsSuperuser     bool            `orm:"default(false)"`
 	Content_type    *ContentType    `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
     Groups          []*Group        `orm:"rel(m2m)"`
