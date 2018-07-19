@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"time"
 	"github.com/pkg/errors"
+	"reflect"
 )
 
 /*
@@ -102,8 +103,9 @@ func (user *User) IsAnonymous() bool {
 
 
 func CompareUser(user1 *User,user2 *User) bool{
-	// TODO
-	return false
+	v1 := reflect.ValueOf(user1)
+	v2 := reflect.ValueOf(user2)
+	return v1.Interface() == v2.Interface()
 }
 
 

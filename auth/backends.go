@@ -3,10 +3,7 @@ package auth
 import (
 	"github.com/astaxie/beego/orm"
 
-	"github.com/astaxie/beego"
-
 	"strconv"
-	"../sessions"
 	"github.com/pkg/errors"
 )
 
@@ -15,19 +12,14 @@ var (
 
 	UserDoesNotExist = errors.New("UserDoesNotExist")
 )
+
+
 const (
 	SESSION_KEY = "_auth_user_id"
 	BACKEND_SESSION_KEY = "_auth_user_backend"
 	HASH_SESSION_KEY = "_auth_user_hash"
 )
 
-
-type Requester struct {
-	// TODO 我们也可以不用他的，自己jiyu http.Request封装一个
-	beego.Controller
-	user    User
-	session *sessions.SessionStore
-}
 
 
 func user_can_authenticate(user User) bool{
@@ -149,7 +141,7 @@ func UpdateSessionAuthHash(request *Requester,user *User ){
       if CompareUser(&request.user,user){
           request.session.SessionCache[HASH_SESSION_KEY] = user.GetSessionAuthHash()
 	  }
-	  
+
 }
 //func get_group_permissions()
 
