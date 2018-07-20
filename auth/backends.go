@@ -5,6 +5,7 @@ import (
 
 	"strconv"
 	"errors"
+	"fmt"
 )
 
 
@@ -31,8 +32,9 @@ func Authenticate(username string ,password string) *User {
 	If the given credentials are valid, return a User object.
 	 */
 	 o := orm.NewOrm()
-	 user1 := User{Username:username}
-	 err1 := o.Read(&user1)
+	 user1 := User{UserName:username}
+	 err1 := o.Read(&user1,"UserName")
+	 fmt.Println(err1)
 	 if err1 == nil{
 	 	if user1.CheckPassword(password) && user_can_authenticate(user1){
 	 		return &user1
@@ -40,7 +42,7 @@ func Authenticate(username string ,password string) *User {
 	 }
 
 	 user2 := User{Email:username}
-	 err2 := o.Read(&user2)
+	 err2 := o.Read(&user2,"Email")
 	 if err2 == nil{
 	 	if user2.CheckPassword(password) && user_can_authenticate(user2){
 	 		return  &user2

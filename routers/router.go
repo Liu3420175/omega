@@ -9,5 +9,6 @@ import (
 func init() {
     beego.Router("/", &controllers.MainController{})
     beego.Router("/backend/account/login/",&backend.Requester{},"post:Login")
+	beego.Router("/backend/account/add/",&backend.Requester{},"post:AddUser")
     
 }

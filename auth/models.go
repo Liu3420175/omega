@@ -85,7 +85,7 @@ func (session *Session) String() string {
 
 type User struct {
 	Id int64 					    `orm:"pk;auto"`
-	Username        string          `orm:"sieze(150);unique"`
+	UserName        string          `orm:"sieze(150);unique"`
 	Email           string          `orm:"size(128);unique"`
 	FirstName       string          `orm:"size(30)"`
 	LastName        string          `orm:"size(30)"`
@@ -115,7 +115,7 @@ func (user *User) TableName() string {
 
 
 func (user *User) GetUsername() string{
-	return user.Username
+	return user.UserName
 }
 
 
@@ -186,7 +186,7 @@ func (user *User)GetPerm(perm string) bool{
 
 func create_user(fields map[string]string) User {
 	var user User
-    username := fields["Username"]
+    username := fields["UserName"]
     if len(username) == 0{
     	panic("The given username must be set")
 	}
@@ -196,7 +196,7 @@ func create_user(fields map[string]string) User {
 	}
     password := fields["Password"]
     user.Password = MakePassword(password,"")
-    user.Username = username
+    user.UserName = username
     user.Email = email
     user.FirstName = fields["FirstName"]
     user.LastName = fields["LastName"]
@@ -230,12 +230,15 @@ func CreateSuperuser (fields map[string]string) (*User,error ) {
 	user := create_user(fields)
 	user.IsStaff = true
 	user.IsSuperuser = true
+	user.IsAdmin = true
 	o := orm.NewOrm()
 	_,err := o.Insert(&user)
 	if err == nil {
+		fmt.Println(666666)
 		return &user,nil
 	}else{
 		// TODO
+		fmt.Println(999999)
 		return nil,errors.New("Create Error" + err.Error())
 	}
 }
