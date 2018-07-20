@@ -65,33 +65,33 @@ func get_user_permissions(user User) []*Permission {
 
 
 
-func Login(request *Requester,user *User){
+func (request *Requester)AuthLogin(user *User){
     /*
     Login
      */
 
 	session_auth_hash := ""
 	if user == nil{
-		user = &request.user
+		user = &request.User
 	}
 	if user != nil {
 		session_auth_hash = user.GetSessionAuthHash()
 	}
-	value , ok := request.session.SessionCache[SESSION_KEY]
+	value , ok := request.Session.SessionCache[SESSION_KEY]
 	if ok{
 		user_id,_ := strconv.Atoi(value)
 		if int64(user_id) != user.Id || (len(session_auth_hash) > 0 &&
-			!ConstantTtimeCompare(request.session.SessionCache[HASH_SESSION_KEY],session_auth_hash)){
-				request.session.Flush()
+			!ConstantTtimeCompare(request.Session.SessionCache[HASH_SESSION_KEY],session_auth_hash)){
+				request.Session.Flush()
 		}
 
 	}else{
-		request.session.CycleKey()
+		request.Session.CycleKey()
 	}
-	request.session.SessionCache[SESSION_KEY] = string(user.Id)
-	request.session.SessionCache[HASH_SESSION_KEY] = session_auth_hash
-	request.session.SessionCache[BACKEND_SESSION_KEY] = "omega.sessions.session"
-	request.user = *user
+	request.Session.SessionCache[SESSION_KEY] = string(user.Id)
+	request.Session.SessionCache[HASH_SESSION_KEY] = session_auth_hash
+	request.Session.SessionCache[BACKEND_SESSION_KEY] = "omega.sessions.session"
+	request.User = *user
 
 	// TODO set csrf
 }
@@ -102,15 +102,15 @@ func Logout(request *Requester){
 	logout
 	 */
 	 //user := request.user
-     request.session.Flush()
-     request.user = User{}
+     request.Session.Flush()
+     request.User = User{}
 
 }
 
 
 func GetUser(request *Requester) (*User,error){
 
-	value ,ok := request.session.SessionCache[SESSION_KEY]
+	value ,ok := request.Session.SessionCache[SESSION_KEY]
 	if ok{
 		user_id,_ := strconv.Atoi(value)
 		o := orm.NewOrm()
@@ -137,9 +137,9 @@ func UpdateSessionAuthHash(request *Requester,user *User ){
     from which the password was changed.
 
 	 */
-      request.session.CycleKey()
-      if CompareUser(&request.user,user){
-          request.session.SessionCache[HASH_SESSION_KEY] = user.GetSessionAuthHash()
+      request.Session.CycleKey()
+      if CompareUser(&request.User,user){
+          request.Session.SessionCache[HASH_SESSION_KEY] = user.GetSessionAuthHash()
 	  }
 
 }

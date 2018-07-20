@@ -1,15 +1,15 @@
-package sessions
+package auth
 
 import (
 	"github.com/astaxie/beego/orm"
 
-	"../auth"
-	"../conf"
+	"omega/conf"
 	"encoding/json"
 	"encoding/base64"
 	"strings"
 	"time"
 	"strconv"
+
 )
 
 type SessionStore struct {
@@ -54,7 +54,7 @@ func (store *SessionStore) Decode(sessiondata string) map[string]string {
 
 func (store *SessionStore) Hash(value string) string {
 	key_salt := "omega.sessions"
-    return auth.SaltedHhmac(key_salt,value,"")
+    return SaltedHhmac(key_salt,value,"")
 }
 
 
@@ -177,7 +177,7 @@ func (store *SessionStore) Load() map[string] string{
 
 func (store *SessionStore) _GetNewSessionKey() (data string){
 	for {
-		data := auth.GetRandomString(32)
+		data := GetRandomString(32)
 		o := orm.NewOrm()
 		session := Session{SessionKey:data}
 		err := o.Read(&session)
@@ -269,7 +269,7 @@ func (store *SessionStore) CreateModelInstance(data map[string]string) *Session 
 	 new_session.SessionKey = store._GetNewSessionKey()
 	 new_session.ExpireDate = store.GetExpiryDate(nil)
 	 new_session.SessionData = store.Encode(data)
-	 user_id,_  := strconv.Atoi(store.Get(auth.SESSION_KEY))
+	 user_id,_  := strconv.Atoi(store.Get(SESSION_KEY))
 	 new_session.UserId = int64(user_id)
 	 o.Insert(&new_session)
 	 return &new_session

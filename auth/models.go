@@ -6,6 +6,9 @@ import (
 	"time"
 	"errors"
 	"reflect"
+	"omega/conf"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 /*
@@ -17,8 +20,8 @@ type Permission struct {
     Name         string         `orm:"size(255)"`
 	Content_type *ContentType   `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
 	Codename      string        `orm:"size(100)"`
-	Groups       []*Permission  `orm:"reverse(many)"`
-	Users        []*User        `orm:"reverse(many)"`
+	Groups       []*Group `orm:"reverse(many)"`
+	//Users        []*User        `orm:"reverse(many)"`
 }
 
 func (permission *Permission) TableName() string  {
@@ -62,10 +65,28 @@ func (group *Group) String() string {
 }
 
 
+type Session struct {
+	SessionKey     string         `orm:"pk;size(64);null"`
+	SessionData    string         `orm:"size(552);null"`
+	ExpireDate     time.Time      `orm:"type(datetime)"`
+	UserId         int64          `orm:"null"`
+}
+
+
+func (session *Session) TableName() string  {
+	return "auth_session"
+
+}
+
+func (session *Session) String() string {
+	return "Session:" + session.SessionKey
+}
+
+
 type User struct {
 	Id int64 					    `orm:"pk;auto"`
 	Username        string          `orm:"sieze(150);unique"`
-	Email           string          `orm:"size(128),unique"`
+	Email           string          `orm:"size(128);unique"`
 	FirstName       string          `orm:"size(30)"`
 	LastName        string          `orm:"size(30)"`
 	Password        string          `orm:"size(128)"`
@@ -78,7 +99,7 @@ type User struct {
 	IsSuperuser     bool            `orm:"default(false)"`
 	Content_type    *ContentType    `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
     Groups          []*Group        `orm:"rel(m2m)"`
-	Permissions     []*Permission   `orm:"rel(m2m)"`
+	//Permissions     []*Permission   `orm:"rel(m2m)"`
 }
 
 
@@ -220,3 +241,19 @@ func CreateSuperuser (fields map[string]string) (*User,error ) {
 }
 
 
+func init() {
+
+	databases := conf.DATABASES
+	database := databases["default"]
+	fmt.Print(database)
+	orm.RegisterDriver("mysql",orm.DRMySQL)
+	connent := database["USER"] + ":" + database["PASSWORD"] + "@tcp(" + database["HOST"] + ":" + database["PORT"] + ")/" + database["NAME"] + "?charset=utf8"
+	orm.RegisterDataBase("","mysql",connent)
+	orm.RegisterModel(
+		new(Group),
+		new(Permission),
+		new(ContentType),
+		new(Session),
+		new(User),
+	)
+}

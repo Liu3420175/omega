@@ -3,11 +3,7 @@ package auth
 
 record models app_label and model's name
  */
-import (
-	"../conf"
-	"github.com/astaxie/beego/orm"
-	_ "github.com/go-sql-driver/mysql"
-)
+
 
  type ContentType struct {
 	 Id           int64          `orm:"pk;auto"`
@@ -39,14 +35,3 @@ import (
  }
 
 
- func init() {
-
- 	databases := conf.DATABASES
- 	database := databases["default"]
- 	orm.RegisterDriver("mysql",orm.DRMySQL)
- 	connent := database["USER"] + ":" + database["PASSWORD"] + "@tcp(" + database["HOST"] + ":" + database["PORT"] + ")/" + database["NAME"] + "?charset=utf8"
- 	orm.RegisterDataBase("DB"+database["NAME"],"mysql",connent)
- 	orm.RegisterModel(
- 		new(ContentType),
-	)
- }

@@ -11,7 +11,7 @@ import (
 	"hash"
 	"crypto/hmac"
 
-	"../conf"
+	"omega/conf"
 	"crypto/sha1"
 	"encoding/hex"
 )

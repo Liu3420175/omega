@@ -2,15 +2,15 @@ package auth
 
 import (
 	"github.com/astaxie/beego"
-	"../sessions"
-	"../common"
+	"omega/common"
+
 )
 
 type Requester struct {
 	// TODO 我们也可以不用他的，自己jiyu http.Request封装一个
 	beego.Controller
-	user    User
-	session *sessions.SessionStore
+	User    User
+	Session *SessionStore
 }
 
 
@@ -29,20 +29,20 @@ func (request *Requester)CommonResponse(code int,r interface{}){
 	return
 }
 
-func ProcessRequest(request *Requester){
+func (request *Requester)ProcessRequest(){
 	// the first oparea
 	heard := request.Ctx.Request.Header
 	token ,ok := heard["x-token-id"]
 	if ok {
-         request.session = &sessions.SessionStore{SessionKey:token[0]}
+         request.Session = &SessionStore{SessionKey:token[0]}
 	}else{
 		panic("") // TODO 
 	}
 
 }
 
-func LoginRequired(request *Requester) {
-	if request.session.SessionKey == ""{
+func (request *Requester)LoginRequired() {
+	if request.Session.SessionKey == ""{
 		request.CommonResponse(10004,"")
 		return
 	}
@@ -66,8 +66,8 @@ func LoginRequired(request *Requester) {
 }
 
 
-func AdminLoginRequired(request *Requester) {
-	if request.session.SessionKey == ""{
+func (request *Requester)AdminLoginRequired() {
+	if request.Session.SessionKey == ""{
 		request.CommonResponse(10004,"")
 		return
 	}
@@ -98,7 +98,7 @@ func AdminLoginRequired(request *Requester) {
 
 
 
-func PermissionRequired(request *Requester,perm interface{}){
+func (request *Requester)PermissionRequired(perm interface{}){
 	perms := []string{}
 	switch perm.(type) {
 	case string:
@@ -111,7 +111,7 @@ func PermissionRequired(request *Requester,perm interface{}){
 		perms = []string{}
 	}
     for _,v := range perms {
-    	 if request.user.GetPerm(v){
+    	 if request.User.GetPerm(v){
 
 		 }
 	}
@@ -121,7 +121,7 @@ func PermissionRequired(request *Requester,perm interface{}){
 
 
 
-func RequireHttpMethods(request *Requester, method_list []string) {
+func (request *Requester)RequireHttpMethods( method_list []string) {
 	method := request.Ctx.Request.Method
 	for _,v :=range method_list {
 		if method == v {
