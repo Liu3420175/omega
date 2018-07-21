@@ -79,6 +79,7 @@ func (request *Requester)AuthLogin(user *User){
 	if user != nil {
 		session_auth_hash = user.GetSessionAuthHash()
 	}
+	request.Session = &SessionStore{}
 	value , ok := request.Session.SessionCache[SESSION_KEY]
 	if ok{
 		user_id,_ := strconv.Atoi(value)
@@ -86,13 +87,19 @@ func (request *Requester)AuthLogin(user *User){
 			!ConstantTtimeCompare(request.Session.SessionCache[HASH_SESSION_KEY],session_auth_hash)){
 				request.Session.Flush()
 		}
+		request.Session.SessionCache[SESSION_KEY] = strconv.FormatInt(user.Id,10)
+		request.Session.SessionCache[HASH_SESSION_KEY] = session_auth_hash
+		request.Session.SessionCache[BACKEND_SESSION_KEY] = "omega.sessions.session"
 
 	}else{
+		request.Session.SessionCache = map[string]string{
+			SESSION_KEY : strconv.FormatInt(user.Id,10),
+			HASH_SESSION_KEY:session_auth_hash,
+			BACKEND_SESSION_KEY:"omega.sessions.session",
+		}
 		request.Session.CycleKey()
 	}
-	request.Session.SessionCache[SESSION_KEY] = string(user.Id)
-	request.Session.SessionCache[HASH_SESSION_KEY] = session_auth_hash
-	request.Session.SessionCache[BACKEND_SESSION_KEY] = "omega.sessions.session"
+
 	request.User = *user
 
 	// TODO set csrf

@@ -212,8 +212,9 @@ func create_user(fields map[string]string) User {
 
 func CreateUser(fields map[string]string) (*User,error ){
 	user := create_user(fields)
-	user.IsStaff = false
+	user.IsStaff = true
 	user.IsSuperuser = false
+	user.IsAdmin = true
 	o := orm.NewOrm()
     _,err := o.Insert(&user)
     if err == nil {

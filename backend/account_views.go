@@ -4,6 +4,7 @@ import (
 	"omega/auth"
 	"encoding/json"
 	"fmt"
+	"omega/common"
 )
 type Requester struct {
 	auth.Requester
@@ -18,7 +19,6 @@ func (request *Requester) Login(){
 	password := form.Password
     fmt.Println(username,"wwwww")
 	user := auth.Authenticate(username,password)
-    fmt.Println(user)
 	if user != nil {
 		if !user.IsActive{
 
@@ -55,16 +55,10 @@ func (request *Requester) AddUser(){
 
 	form := UserAddForm{}
 	json.Unmarshal(request.Ctx.Input.RequestBody,&form)
-    fields := map[string]string{
-    	"UserName":form.UserName,
-    	"Password":form.Password,
-    	"Email":form.Email,
-		"FirstName":form.FirstName,
-		"LastName" : form.LastName,
-		"Phone":   form.Phone,
-	}
+	// TODO re-test
+    fields := common.StructToMap(form)
 
-	user,err := auth.CreateSuperuser(fields)
+	user,err := auth.CreateUser(fields)
 	if err == nil{
 		request.CommonResponse(0,user)
 		return

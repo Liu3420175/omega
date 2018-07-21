@@ -10,6 +10,7 @@ import (
 	"time"
 	"strconv"
 
+	"fmt"
 )
 
 type SessionStore struct {
@@ -29,9 +30,11 @@ func (store *SessionStore) _Session() map[string]string{
 	//}
 
     if len(store.SessionKey) == 0 {
+    	fmt.Println("kongkong")
 		store.SessionCache =  map[string]string{}
 	}else{
-		store.SessionCache = store.Load()
+
+		store.SessionCache = store.SessionCache//store.Load()
 	}
 	return store.SessionCache
 }
@@ -157,9 +160,11 @@ func (store *SessionStore) IsEmpty() bool {
 
 
 func (store *SessionStore) Load() map[string] string{
+
+	// TODO 貌似无用
 	o := orm.NewOrm()
 	session := Session{SessionKey:store.SessionKey}
-	err := o.Read(&session)
+	err := o.Read(&session,"SessionKey")
 	if err == nil{
         if session.ExpireDate.Before(time.Now()){
         	// exprired
@@ -168,7 +173,7 @@ func (store *SessionStore) Load() map[string] string{
 			return store.Decode(session.SessionData)
 		}
 	}else{
-		store.SessionKey = ""
+		//store.SessionKey = ""
 		return map[string]string{}
 	}
 }
@@ -180,14 +185,17 @@ func (store *SessionStore) _GetNewSessionKey() (data string){
 		data := GetRandomString(32)
 		o := orm.NewOrm()
 		session := Session{SessionKey:data}
-		err := o.Read(&session)
+		err := o.Read(&session,"SessionKey")
+
 		if err != nil{
-			break
+			fmt.Println(data)
+			return data
 			}
 		}
 	return data
 
 }
+
 
 func (store *SessionStore) _GetOrCreateSessionKey() string{
 	if len(store.SessionKey) == 0{
@@ -266,7 +274,7 @@ func (store *SessionStore) CreateModelInstance(data map[string]string) *Session 
 	 */
 	 o := orm.NewOrm()
 	 var new_session Session
-	 new_session.SessionKey = store._GetNewSessionKey()
+	 new_session.SessionKey = store._GetSessionKey()
 	 new_session.ExpireDate = store.GetExpiryDate(nil)
 	 new_session.SessionData = store.Encode(data)
 	 user_id,_  := strconv.Atoi(store.Get(SESSION_KEY))
@@ -281,16 +289,18 @@ func (store *SessionStore) Create() error{
 	for {
 		store.SessionKey = store._GetNewSessionKey()
 		err := store.Save()
-		if err != nil{
-			continue
-		}
+
 		store.Modified = true
-		return nil
+		if err == nil{
+			return nil
+		}
+
 	}
 }
 
 
 func (store *SessionStore) Save() error {
+
     if len(store._GetSessionKey()) == 0 {
         return store.Create()
 	}
@@ -304,10 +314,12 @@ func (store *SessionStore) CycleKey(){
 	/*
 	Creates a new session key, while retaining the current session data.
 	 */
-	 data := store._Session()
+	 data := store.SessionCache
 	 key := store.SessionKey
+
 	 store.Create()
 	 store.SessionCache = data
+
 	 if len(key) > 0 {
 		 store.Delete(key)
 	 }
