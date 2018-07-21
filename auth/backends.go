@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"errors"
 	"fmt"
+	"time"
 )
 
 
@@ -101,6 +102,11 @@ func (request *Requester)AuthLogin(user *User){
 	}
 
 	request.User = *user
+	if user != nil{
+		o := orm.NewOrm()
+        user.LastLogin = time.Now()
+		o.Update(user)
+	}
 
 	// TODO set csrf
 }

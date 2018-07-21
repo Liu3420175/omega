@@ -235,11 +235,9 @@ func CreateSuperuser (fields map[string]string) (*User,error ) {
 	o := orm.NewOrm()
 	_,err := o.Insert(&user)
 	if err == nil {
-		fmt.Println(666666)
 		return &user,nil
 	}else{
 		// TODO
-		fmt.Println(999999)
 		return nil,errors.New("Create Error" + err.Error())
 	}
 }

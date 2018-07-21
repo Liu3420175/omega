@@ -3,8 +3,9 @@ package backend
 import (
 	"omega/auth"
 	"encoding/json"
-	"fmt"
 	"omega/common"
+	"fmt"
+	"github.com/astaxie/beego/orm"
 )
 type Requester struct {
 	auth.Requester
@@ -17,7 +18,7 @@ func (request *Requester) Login(){
     json.Unmarshal(request.Ctx.Input.RequestBody,&form)
 	username := form.UserName
 	password := form.Password
-    fmt.Println(username,"wwwww")
+
 	user := auth.Authenticate(username,password)
 	if user != nil {
 		if !user.IsActive{
@@ -40,6 +41,8 @@ func (request *Requester) Login(){
 		data := map[string]string{
 			"token": request.Session.SessionKey,
 		}
+		fmt.Println(request.Session)
+		fmt.Println(request.User)
 		request.CommonResponse(0,data)
 		return
 		}else{
@@ -57,10 +60,22 @@ func (request *Requester) AddUser(){
 	json.Unmarshal(request.Ctx.Input.RequestBody,&form)
 	// TODO re-test
     fields := common.StructToMap(form)
+    username := form.UserName
+    email := form.Email
+    table_name := new(auth.User)
+    cond := orm.NewCondition().Or("user_name",username).Or("email",email)
+    num,_ := orm.NewOrm().QueryTable(table_name).SetCond(cond).Count()
 
+    if num > 0{
+		request.CommonResponse(10102,"")
+		return
+	}
 	user,err := auth.CreateUser(fields)
 	if err == nil{
-		request.CommonResponse(0,user)
+		result := map[string]interface{}{
+			"Id":user.Id,
+		}
+		request.CommonResponse(0,result)
 		return
 	}else{
 		request.CommonResponse(10120,"")

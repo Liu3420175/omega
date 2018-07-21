@@ -22,8 +22,8 @@ var (
 
 
 		10101: "Email  Format is valid ",
-		10102: "This Email had been registered",
-		10103: "This Email had been frozen",
+		10102: "This Account had been registered",
+		10103: "This Account had been frozen",
 		10104: "Verification Code is error",
 		10105: "Verification Code had expired",
 		10106: "Two cipher inconsistencies",
