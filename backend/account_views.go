@@ -4,7 +4,6 @@ import (
 	"omega/auth"
 	"encoding/json"
 	"omega/common"
-	"fmt"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -40,8 +39,8 @@ func (request *Requester) Login(){
 		data := map[string]string{
 			"token": request.Session.SessionKey,
 		}
-		fmt.Println(request.Session)
-		fmt.Println(request.User)
+		//fmt.Println(request.Session)
+		//fmt.Println(request.User)
 		request.CommonResponse(0,data)
 		return
 		}else{

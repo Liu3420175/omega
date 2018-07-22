@@ -102,6 +102,7 @@ func (request *Requester)AuthLogin(user *User){
 	}
 
 	request.User = *user
+	request.HasLogin = true
 	if user != nil{
 		o := orm.NewOrm()
         user.LastLogin = time.Now()

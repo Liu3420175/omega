@@ -43,7 +43,7 @@ func (request *Requester) CustomerAccountList() {
 		"limit" : Limit,
 		"infos" : users,
 	}
-	fmt.Println("response")
+	fmt.Println("response==",request.User)
 	request.CommonResponse(0,result)
 	return
 

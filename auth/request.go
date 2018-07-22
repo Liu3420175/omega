@@ -10,8 +10,10 @@ import (
 type Requester struct {
 	// TODO 我们也可以不用他的，自己jiyu http.Request封装一个
 	beego.Controller
-	User    User
-	Session *SessionStore
+	User            User
+	Session         *SessionStore
+	Permissions     []string //quan xian
+	HasLogin        bool
 }
 
 
@@ -44,13 +46,13 @@ func (request *Requester)ProcessRequest(){
 }
 
 func (request *Requester)LoginRequired() {
-	fmt.Println("sss==",request.Session.SessionKey)
+	//fmt.Println("sss==",request.Session.SessionKey)
 	if request.Session.SessionKey == ""{
 		request.CommonResponse(10004,"")
 		return
 	}
 	user,err := request.GetUser()
-	fmt.Println("user==",user,err)
+	//fmt.Println("user==",user,err)
 	if err == nil{
 		if CompareUser(user,&User{}) {
 			request.CommonResponse(10003,"")
@@ -65,6 +67,10 @@ func (request *Requester)LoginRequired() {
 		if !user.IsStaff{
 			request.CommonResponse(10005,"")
 		}
+		// TODO zhe liang bu bu neng shao
+		request.User = *user
+		request.HasLogin = true
+
 	}else{
 		request.CommonResponse(10003,"")
 		return
@@ -147,7 +153,11 @@ func (request *Requester)RequireHttpMethods( method_list []string) {
 
 
 func (request *Requester)Prepare() {
-	fmt.Println("Prepreperper")
-	request.ProcessRequest()
-    request.LoginRequired()
+	fmt.Println(request.HasLogin)
+	//fmt.Println("Prepreperper")
+	if true {
+		fmt.Println("Prepreperper")
+		request.ProcessRequest()
+		request.LoginRequired()
+	}
 }
