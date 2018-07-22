@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/json"
 	"reflect"
+	"github.com/astaxie/beego/orm"
 	"fmt"
 )
 
@@ -32,10 +33,30 @@ func JsonToObject(data string) (result interface{}){
 //}
 
 
+
+func  GetSearchResults(query orm.QuerySeter,fields []string,search_term string) orm.QuerySeter {
+	/*
+    数据库模糊查询
+    */
+
+	cond := orm.NewCondition()
+
+    for _,field := range fields {
+
+    	cond = cond.Or(field + "__icontains",search_term)
+    	//cond = cond.Or(field + "__istartswith",search_term)
+    	//cond = cond.Or(field + "__endswith",search_term)
+    	//cond = cond.Or(field + "__iexact",search_term)
+    	fmt.Println(cond)
+
+	}
+    query.SetCond(cond)
+    return query
+
+}
+
 func StructToMap(object interface{}) map[string]string{
 	v := reflect.ValueOf(object)
-
-	fmt.Println(v.Kind().String(),reflect.Struct)
 	if v.Kind() == reflect.Struct {
 		var result map[string]string
 		json_str,_ := json.Marshal(object)

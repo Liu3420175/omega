@@ -123,7 +123,7 @@ func Logout(request *Requester){
 }
 
 
-func GetUser(request *Requester) (*User,error){
+func (request *Requester)GetUser() (*User,error){
 
 	value ,ok := request.Session.SessionCache[SESSION_KEY]
 	if ok{

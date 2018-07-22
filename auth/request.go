@@ -46,7 +46,7 @@ func (request *Requester)LoginRequired() {
 		request.CommonResponse(10004,"")
 		return
 	}
-	user,err := GetUser(request)
+	user,err := request.GetUser()
 	if err == nil{
 		if CompareUser(user,&User{}) {
 			request.CommonResponse(10003,"")
@@ -71,7 +71,7 @@ func (request *Requester)AdminLoginRequired() {
 		request.CommonResponse(10004,"")
 		return
 	}
-	user,err := GetUser(request)
+	user,err := request.GetUser()
 	if err == nil{
 		if CompareUser(user,&User{}) {
 			request.CommonResponse(10003,"")

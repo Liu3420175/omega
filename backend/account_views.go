@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/orm"
 )
-type Requester struct {
-	auth.Requester
-}
+
+
 
 func (request *Requester) Login(){
 
