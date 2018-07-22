@@ -21,7 +21,6 @@ type Permission struct {
 	Content_type *ContentType   `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
 	Codename      string        `orm:"size(100)"`
 	Groups       []*Group `orm:"reverse(many)"`
-	//Users        []*User        `orm:"reverse(many)"`
 }
 
 func (permission *Permission) TableName() string  {
@@ -99,7 +98,6 @@ type User struct {
 	IsSuperuser     bool            `orm:"default(false)"`
 	Content_type    *ContentType    `orm:"rel(fk);null;column(content_type);on_delete(set_null)"`
     Groups          []*Group        `orm:"rel(m2m)"`
-	//Permissions     []*Permission   `orm:"rel(m2m)"`
 }
 
 
@@ -165,11 +163,17 @@ func (user *User) GerShortName() string {
 }
 
 
-func (user *User) GetGroupPermissions() []string{
-	var permissions  []string
+func (user *User) GetGroupPermissions() orm.ParamsList{
 
+	o := orm.NewOrm()
+    group_name := new(Group)
+    permission_name := new(Permission)
+    var group_ids,permissions orm.ParamsList
+    o.QueryTable(group_name).Filter("Users__Id",user.Id).ValuesFlat(&group_ids,"id")
+    o.QueryTable(permission_name).Filter("Groups__Id__in",group_ids).ValuesFlat(&permissions,"codename")
 	return permissions
 }
+
 
 
 func (user *User) GetSessionAuthHash() string{
@@ -178,10 +182,17 @@ func (user *User) GetSessionAuthHash() string{
 }
 
 
-func (user *User)GetPerm(perm string) bool{
 
+func (user *User)GetPerm(perm string) bool{
+    perms := user.GetGroupPermissions()
+    for _,v := range perms{
+    	if v == perm{
+    		return true
+		}
+	}
 	return false
 }
+
 
 
 func create_user(fields map[string]string) User {

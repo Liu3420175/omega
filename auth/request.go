@@ -12,7 +12,6 @@ type Requester struct {
 	beego.Controller
 	User            User
 	Session         *SessionStore
-	Permissions     []string //quan xian
 	HasLogin        bool
 }
 
@@ -138,7 +137,7 @@ func (request *Requester)RequireHttpMethods( method_list []string) {
 	method := request.Ctx.Request.Method
 	for _,v :=range method_list {
 		if method == v {
-
+            return
 		}
 	}
 	request.CommonResponse(10013,"")
@@ -146,7 +145,14 @@ func (request *Requester)RequireHttpMethods( method_list []string) {
 
 }
 
+func (request *Requester) RequireHttpGet(){
+	request.RequireHttpMethods([]string{"GET"})
+}
 
+
+func (request *Requester) RequireHttpPost(){
+	request.RequireHttpMethods([]string{"POST"})
+}
 
 
 

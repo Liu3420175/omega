@@ -10,6 +10,7 @@ import (
 )
 
 func (request *Requester) CustomerAccountList() {
+	request.RequireHttpGet()
     page := request.GetString("page","1")
     limit := request.GetString("limit","10")
 	q := request.GetString("q","")
@@ -43,7 +44,7 @@ func (request *Requester) CustomerAccountList() {
 		"limit" : Limit,
 		"infos" : users,
 	}
-	fmt.Println("response==",request.User)
+	fmt.Println("response==",request.Ctx.Request.Method)
 	request.CommonResponse(0,result)
 	return
 
