@@ -34,7 +34,7 @@ func (store *SessionStore) _Session() map[string]string{
 		store.SessionCache =  map[string]string{}
 	}else{
 
-		store.SessionCache = store.SessionCache//store.Load()
+		store.SessionCache = store.SessionCache //store.Load()
 	}
 	return store.SessionCache
 }

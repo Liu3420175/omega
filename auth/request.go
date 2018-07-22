@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego"
 	"omega/common"
 
+	"fmt"
 )
 
 type Requester struct {
@@ -32,21 +33,24 @@ func (request *Requester)CommonResponse(code int,r interface{}){
 func (request *Requester)ProcessRequest(){
 	// the first oparea
 	heard := request.Ctx.Request.Header
-	token ,ok := heard["x-token-id"]
+	token ,ok := heard["X-Token-Id"]
 	if ok {
          request.Session = &SessionStore{SessionKey:token[0]}
 	}else{
-		panic("") // TODO 
+		request.CommonResponse(10003,"")
+		return // TODO
 	}
 
 }
 
 func (request *Requester)LoginRequired() {
+	fmt.Println("sss==",request.Session.SessionKey)
 	if request.Session.SessionKey == ""{
 		request.CommonResponse(10004,"")
 		return
 	}
 	user,err := request.GetUser()
+	fmt.Println("user==",user,err)
 	if err == nil{
 		if CompareUser(user,&User{}) {
 			request.CommonResponse(10003,"")
@@ -61,6 +65,9 @@ func (request *Requester)LoginRequired() {
 		if !user.IsStaff{
 			request.CommonResponse(10005,"")
 		}
+	}else{
+		request.CommonResponse(10003,"")
+		return
 	}
 
 }
@@ -140,5 +147,7 @@ func (request *Requester)RequireHttpMethods( method_list []string) {
 
 
 func (request *Requester)Prepare() {
-
+	fmt.Println("Prepreperper")
+	request.ProcessRequest()
+    request.LoginRequired()
 }

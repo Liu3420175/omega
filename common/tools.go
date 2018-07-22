@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"reflect"
 	"github.com/astaxie/beego/orm"
-	"fmt"
 )
 
 func JsonToObject(data string) (result interface{}){
@@ -47,9 +46,9 @@ func  GetSearchResults(query orm.QuerySeter,fields []string,search_term string) 
     	//cond = cond.Or(field + "__istartswith",search_term)
     	//cond = cond.Or(field + "__endswith",search_term)
     	//cond = cond.Or(field + "__iexact",search_term)
-    	fmt.Println(cond)
 
 	}
+	//fmt.Println(cond)
     query.SetCond(cond)
     return query
 

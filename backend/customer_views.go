@@ -6,6 +6,7 @@ import (
 	"omega/auth"
 	"github.com/astaxie/beego/orm"
 	"omega/common"
+	"fmt"
 )
 
 func (request *Requester) CustomerAccountList() {
@@ -17,7 +18,7 @@ func (request *Requester) CustomerAccountList() {
 	q = strings.Trim(q," ")
 	//state = strings.Trim(state," ")
 	limit = strings.Trim(limit," ")
-
+    //fmt.Println("hello==",request.Ctx.Request.Header)
 	Page,_ := strconv.Atoi(page)
 	Limit,_ := strconv.Atoi(limit)
 	if Page <= 0{
@@ -42,6 +43,7 @@ func (request *Requester) CustomerAccountList() {
 		"limit" : Limit,
 		"infos" : users,
 	}
+	fmt.Println("response")
 	request.CommonResponse(0,result)
 	return
 

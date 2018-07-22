@@ -122,21 +122,38 @@ func Logout(request *Requester){
 
 }
 
+func getuser(o orm.Ormer,userid string) (*User,error){
+	user_id,_ := strconv.Atoi(userid)
+	user := User{Id:int64(user_id)}
+	err := o.Read(&user)
+	if err == nil{
+		return &user,nil
+	}
+	return &User{},UserDoesNotExist
+}
+
+
 
 func (request *Requester)GetUser() (*User,error){
 
 	value ,ok := request.Session.SessionCache[SESSION_KEY]
+	o := orm.NewOrm()
 	if ok{
-		user_id,_ := strconv.Atoi(value)
-		o := orm.NewOrm()
-		user := User{Id:int64(user_id)}
-		err := o.Read(&user)
+		return getuser(o,value)
+
+	}else{
+		session := Session{SessionKey:request.Session.SessionKey,}
+		err := o.Read(&session,"SessionKey")
 		if err == nil{
-			return &user,nil
+			data := request.Session.Decode(session.SessionData)
+			value , ok = data[SESSION_KEY]
+			if ok{
+				return getuser(o,value)
+			}
+
 		}
 	}
 	return &User{},UserDoesNotExist
-
 }
 
 
