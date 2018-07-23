@@ -19,5 +19,9 @@ const (
 	//var PASSWORDHASHERS = "pbkdf2_sha256"
 	SESSION_COOKIE_AGE = 7 * 24 * 60 * 60
 
+	EMAIL_HOST = "m.qq.com"
+	EMAIL_USERNAME = "xxxx"
+	EMAIL_PASSWORD = "xxxx"
+
 )
 

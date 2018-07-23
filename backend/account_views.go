@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"omega/common"
 	"github.com/astaxie/beego/orm"
+	"net/smtp"
+	"omega/conf"
 )
 
 
@@ -56,6 +58,28 @@ func (request *Requester) Login(){
 			return
 	}
 	}
+
+
+
+func (request *Requester) Logout(){
+	request.Session.Flush()
+	request.Ctx.ResponseWriter.Header().Del("X-Token-Id")
+	request.CommonResponse(0,"")
+}
+
+
+func (request *Requester) SendEmail(){
+	form := EmailForm{}
+	json.Unmarshal(request.Ctx.Input.RequestBody,&form)
+	email := form.Email
+	if len(email) > 0 { // TODO you dai gai jin
+		Auth := smtp.PlainAuth("", conf.EMAIL_USERNAME, conf.EMAIL_PASSWORD, conf.EMAIL_HOST)
+		smtp.SendMail(conf.EMAIL_HOST,Auth,
+			conf.EMAIL_USERNAME,[]string{"xxxx"},[]byte{})
+		}
+}
+
+
 
 
 

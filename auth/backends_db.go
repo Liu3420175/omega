@@ -148,6 +148,7 @@ func (store *SessionStore) Values() (result []string) {
 func (store *SessionStore) Clear(){
 	store.Modified = true
 	store.Accessed = true
+	store.SessionKey = ""
 	store.SessionCache = map[string]string{}
 }
 

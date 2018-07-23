@@ -14,3 +14,8 @@ type UserAddForm struct {
 	LastName        string
 	Phone           string
 }
+
+
+type EmailForm struct {
+	Email           string
+}
