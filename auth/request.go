@@ -162,7 +162,6 @@ func (request *Requester)Prepare() {
 	fmt.Println(request.HasLogin)
 	//fmt.Println("Prepreperper")
 	if true {
-		fmt.Println("Prepreperper")
 		request.ProcessRequest()
 		request.LoginRequired()
 	}
