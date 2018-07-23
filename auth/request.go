@@ -161,7 +161,7 @@ func (request *Requester) RequireHttpPost(){
 func (request *Requester)Prepare() {
 	fmt.Println(request.HasLogin)
 	//fmt.Println("Prepreperper")
-	if true {
+	if request.HasLogin {
 		request.ProcessRequest()
 		request.LoginRequired()
 	}

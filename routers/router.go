@@ -14,5 +14,6 @@ func init() {
 
     // customer
     beego.Router("/backend/customer/list/",&backend.Requester{},"*:CustomerAccountList")
+	beego.Router("/backend/authcode/",&backend.Requester{},"*:AuthCode")
     
 }

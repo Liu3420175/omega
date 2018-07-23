@@ -9,6 +9,14 @@ import (
 
 
 
+func (request *Requester) AuthCode() {
+	stream := common.CodeCaptchaCreate()
+	request.Ctx.ResponseWriter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	body := map[string]interface{}{"code": 1, "data": stream,  "msg": "success"}
+	json.NewEncoder(request.Ctx.ResponseWriter).Encode(body)
+}
+
+
 func (request *Requester) Login(){
 
 	form := UserLoginForm{}
