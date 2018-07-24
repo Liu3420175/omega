@@ -4,7 +4,6 @@ import (
 	"github.com/astaxie/beego"
 	"omega/common"
 
-	"fmt"
 )
 
 type Requester struct {
@@ -155,14 +154,3 @@ func (request *Requester) RequireHttpPost(){
 }
 
 
-
-
-
-func (request *Requester)Prepare() {
-	fmt.Println(request.HasLogin)
-	//fmt.Println("Prepreperper")
-	if request.HasLogin {
-		request.ProcessRequest()
-		request.LoginRequired()
-	}
-}

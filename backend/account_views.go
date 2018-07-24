@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"omega/common"
 	"github.com/astaxie/beego/orm"
+	"fmt"
 	"net/smtp"
 	"omega/conf"
 )
@@ -12,10 +13,13 @@ import (
 
 
 func (request *Requester) AuthCode() {
-	stream := common.CodeCaptchaCreate()
-	request.Ctx.ResponseWriter.Header().Set("Content-Type", "application/json; charset=utf-8")
-	body := map[string]interface{}{"code": 1, "data": stream,  "msg": "success"}
-	json.NewEncoder(request.Ctx.ResponseWriter).Encode(body)
+	idkey,stream := common.CodeCaptchaCreate()
+	request.Ctx.ResponseWriter.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Ctx.ResponseWriter.Header().Set("X-Code-Session",idkey)
+	//body := map[string]interface{}{"code": 1, "data": stream,  "msg": "success"}
+	//json.NewEncoder(request.Ctx.ResponseWriter).Encode(stream)
+	fmt.Println(request.Ctx.ResponseWriter.Header())
+	request.Ctx.WriteString(stream)
 }
 
 
@@ -69,14 +73,38 @@ func (request *Requester) Logout(){
 
 
 func (request *Requester) SendEmail(){
+	//  send code to backend-manager
 	form := EmailForm{}
 	json.Unmarshal(request.Ctx.Input.RequestBody,&form)
 	email := form.Email
-	if len(email) > 0 { // TODO you dai gai jin
+	user := auth.User{Email:email}
+	err := orm.NewOrm().Read(&user,"Email")
+	if err == nil{
+		if !user.IsActive{
+			request.CommonResponse(10103,"")
+			return
+		}
+		if !user.IsStaff{
+			request.CommonResponse(10005,"")
+			return
+		}
+		if !user.IsAdmin{
+			request.CommonResponse(10007,"")
+			return
+		}
+        code := auth.GetRandomString(6)
+        text := code
 		Auth := smtp.PlainAuth("", conf.EMAIL_USERNAME, conf.EMAIL_PASSWORD, conf.EMAIL_HOST)
 		smtp.SendMail(conf.EMAIL_HOST,Auth,
-			conf.EMAIL_USERNAME,[]string{"xxxx"},[]byte{})
-		}
+			conf.EMAIL_USERNAME,[]string{"xxxx"},[]byte(text))
+		request.Session.SessionCache["email"] = email
+		request.Session.SessionCache["email_code"] = code
+		request.Session.SessionCache["email_expires"] = ""//time.Now().Add(time.Duration(30 * 60 * 1000 *1000))
+	}else{
+		request.CommonResponse(10107,"")
+		return
+	}
+
 }
 
 

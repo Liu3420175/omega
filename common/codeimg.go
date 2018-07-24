@@ -107,7 +107,7 @@ func (authcode *AuthCode) DrowPoints(rgba *image.RGBA) *image.RGBA{
 
 
 
-func CodeCaptchaCreate() string{
+func CodeCaptchaCreate() (string,string){
 	//config struct for digits
 	//数字验证码配置
 	var configD = base64Captcha.ConfigDigit{
@@ -121,10 +121,20 @@ func CodeCaptchaCreate() string{
 
 	//创建数字验证码.
 	//GenerateCaptcha 第一个参数为空字符串,包会自动在服务器一个随机种子给你产生随机uiid.
-	_, capD := base64Captcha.GenerateCaptcha("", configD)
+	idkey, capD := base64Captcha.GenerateCaptcha("", configD)
 	//以base64编码
 	base64stringD := base64Captcha.CaptchaWriteToBase64Encoding(capD)
+    return idkey,base64stringD
 
-    return base64stringD
+}
 
+
+
+func VerfiyCaptcha(idkey,verifyValue string) bool{
+	verifyResult := base64Captcha.VerifyCaptcha(idkey, verifyValue)
+	if verifyResult {
+		return true
+	} else {
+		return false
+	}
 }
