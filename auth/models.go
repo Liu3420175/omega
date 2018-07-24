@@ -134,16 +134,15 @@ func (user *User) IsAuthenticated() bool {
 }
 
 
-func (user *User) SetPassword(raw_password string ) bool {
+func (user *User) SetPassword(raw_password string )  {
 	// TODO
-	o := orm.NewOrm()
+	//o := orm.NewOrm()
 	user.Password = MakePassword(raw_password,"")
-	_,err := o.Update(user)
-	if err == nil {
-		return true
-	}else{
-		return false
-	}
+	//_,err := o.Update(user)
+	//if err == nil {
+	//	return true }else{
+	//	return false
+	//}
 
 }
 

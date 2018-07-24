@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/smtp"
 	"omega/conf"
+	"time"
+	"strconv"
 )
 
 
@@ -97,9 +99,10 @@ func (request *Requester) SendEmail(){
 		Auth := smtp.PlainAuth("", conf.EMAIL_USERNAME, conf.EMAIL_PASSWORD, conf.EMAIL_HOST)
 		smtp.SendMail(conf.EMAIL_HOST,Auth,
 			conf.EMAIL_USERNAME,[]string{"xxxx"},[]byte(text))
+		request.Session.CycleKey()
 		request.Session.SessionCache["email"] = email
 		request.Session.SessionCache["email_code"] = code
-		request.Session.SessionCache["email_expires"] = ""//time.Now().Add(time.Duration(30 * 60 * 1000 *1000))
+		request.Session.SessionCache["email_expires"] = strconv.FormatInt(time.Now().Unix() + 30 * 60,10)
 	}else{
 		request.CommonResponse(10107,"")
 		return
@@ -108,6 +111,153 @@ func (request *Requester) SendEmail(){
 }
 
 
+
+
+func (request *Requester) EmailVerification(){
+    form := EmailVerifyForm{}
+    json.Unmarshal(request.Ctx.Input.RequestBody,&form)
+    email , code := form.Email ,form.Code
+	if email != request.Session.SessionCache["email"]{
+		request.Session.SessionCache["email_code"] = ""
+		request.CommonResponse(10001,"")
+		return
+	}
+
+	if code != request.Session.SessionCache["email_code"]{
+		request.Session.SessionCache["email_code"] = ""
+		request.CommonResponse(10114,"")
+		return
+	}else{
+		now := time.Now().Unix()
+		expires,_ := strconv.Atoi(request.Session.SessionCache["email_expires"])
+		if now > int64(expires){
+			request.Session.SessionCache["email_code"] = ""
+			request.CommonResponse(10114,"")
+			return
+		}
+	}
+
+
+	request.Session.SessionCache["email_verification"] = "1"
+	request.Session.SessionCache["email_code"] = ""
+	request.CommonResponse(0,"")
+	return
+}
+
+
+
+func (request *Requester) PasswordRecover() {
+	// forget password and recover
+	if request.Session.SessionCache["email_verification"] != "1"{
+		request.CommonResponse(10002,"")
+		return
+	}
+	now := time.Now().Unix()
+	expires,_ := strconv.Atoi(request.Session.SessionCache["email_expires"])
+	if now > int64(expires){
+		request.CommonResponse(10003,"")
+		return
+	}
+
+	email := request.Session.SessionCache["email"]
+	form := PasswordRecoverForm{}
+	json.Unmarshal(request.Ctx.Input.RequestBody,&form)
+	password1 , password2 := form.Password1 , form.Password2
+
+	if password1 != password2{
+		request.CommonResponse(10109,"")
+		return
+	}
+	if len(password2) < 8{
+		request.CommonResponse(10116,"")
+		return
+	}
+	o := orm.NewOrm()
+	user := auth.User{Email:email}
+	err := o.Read(&user,"Email")
+	if err == nil{
+		user.SetPassword(password1)
+		_,err1 := o.Update(&user)
+		if err1 == nil{
+			request.CommonResponse(0,"")
+			return
+		}else{
+			request.CommonResponse(10120,"")
+			return
+		}
+	}else{
+		request.CommonResponse(10107,"")
+		return
+	}
+
+}
+
+
+
+
+func (request *Requester) UserPasswordChange() {
+	// change password
+	form := UserPasswordChangeForm{}
+	json.Unmarshal(request.Ctx.Input.RequestBody,&form)
+	new_password ,old_password := form.NewPassword,form.OldPassword
+
+	if new_password == old_password{
+		request.CommonResponse(10109,"")
+		return
+	}
+	if len(new_password) < 8{
+		request.CommonResponse(10116,"")
+		return
+	}
+
+    user := request.User
+    if !user.CheckPassword(old_password){
+		request.CommonResponse(10107,"")
+		return
+	}
+	o := orm.NewOrm()
+	user.SetPassword(new_password)
+	_,err := o.Update(&user)
+	if err == nil{
+		request.CommonResponse(0,"")
+		return
+	}else{
+		request.CommonResponse(10120,"")
+		return
+	}
+}
+
+
+func (request *Requester)UserInfo(){
+	user := request.User
+	if request.Ctx.Request.Method == "GET"{
+
+		result := map[string]interface{}{
+			"email":user.Email,
+			"username":user.UserName,
+			"firstName":user.FirstName,
+			"lastname":user.LastName,
+			"phone":user.Phone,
+		}
+		request.CommonResponse(0,result)
+		return
+	}else{
+        form := UserInfoCHangeForm{}
+        err := json.Unmarshal(request.Ctx.Input.RequestBody,&form)
+        if err == nil{
+			user.Phone = form.Phone
+			user.FirstName = form.FirstName
+			user.LastName = form.LastName
+			orm.NewOrm().Update(&user)
+			request.CommonResponse(0,"")
+			return
+		}else{
+			request.CommonResponse(10001,"")
+			return
+		}
+
+	}
+}
 
 
 
