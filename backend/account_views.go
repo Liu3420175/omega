@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"omega/conf"
+
 	"time"
 	"strconv"
 )
@@ -30,6 +31,15 @@ func (request *Requester) Login(){
 	form := UserLoginForm{}
 	//fmt.Println(request.Ctx.Input.RequestBody)
     json.Unmarshal(request.Ctx.Input.RequestBody,&form)
+	validation := new(Form)
+	validation.Valid(form)
+
+	if validation.HasError {
+		fmt.Println(validation.ErrorMessage)
+		request.CommonResponse(10001,"")
+		return
+	}
+
 	username := form.UserName
 	password := form.Password
 

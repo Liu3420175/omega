@@ -1,6 +1,8 @@
 package form
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type Form struct {
 	HasError         bool
@@ -13,7 +15,10 @@ type Form struct {
 func (form *Form)NewCharField(tags string,fieldname string ,dest interface{}) (err error,valid Validator){
 	char := new(CharField)
 	err = char.ParseTagString(tags,fieldname,dest)
-	form.HasError = char.HasError
+	form.HasError = form.HasError || char.HasError
+	if form.ErrorMessage == nil {
+		form.ErrorMessage =  map[string]interface{}{}
+	}
 	form.ErrorMessage[fieldname] = char.ErrorMessage[fieldname]
 	valid = char
 	return err,valid
@@ -23,7 +28,10 @@ func (form *Form)NewCharField(tags string,fieldname string ,dest interface{}) (e
 func (form *Form)NewIntegerField (tags string,fieldname string ,dest interface{}) (err error,valid Validator){
 	integer := new(IntegerField)
 	err = integer.ParseTagString(tags,fieldname,dest)
-	form.HasError = integer.HasError
+	form.HasError = form.HasError || integer.HasError
+	if form.ErrorMessage == nil {
+		form.ErrorMessage =  map[string]interface{}{}
+	}
 	form.ErrorMessage[fieldname] = integer.ErrorMessage[fieldname]
 	valid = integer
 	return err,valid
@@ -35,8 +43,8 @@ func (form *Form) Valid(object interface{}) (err error,valid Validator) {
 
 	objT := reflect.TypeOf(object)
 	objK := objT.Kind()
-    objV := reflect.ValueOf(&object)
-
+    objV := reflect.ValueOf(object)
+    var errT error
 	if objK != reflect.Struct{
 		panic("Must be Struct")
 	}
@@ -55,13 +63,23 @@ func (form *Form) Valid(object interface{}) (err error,valid Validator) {
 		}
 		switch filetype {
 		case "CharField" :
-              err,valid = form.NewCharField(tags,fieldname,value)
+              errT,valid = form.NewCharField(tags,fieldname,value)
+              if errT != nil{
+              	err = errT
+			  }
 		case "IntegerField":
-			  err,valid = form.NewIntegerField(tags,fieldname,value)
+			  errT,valid = form.NewIntegerField(tags,fieldname,value)
+			  if errT != nil{
+				err = errT
+			  }
 		}
 
 	}
 
 
 	return err,valid
+}
+
+func init()  {
+
 }

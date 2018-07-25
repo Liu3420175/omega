@@ -81,7 +81,7 @@ func ParseFormTagString(tag string) ( error,string,string){
 
 	var err error
 	tag = strings.TrimSpace(tag)
-	tag = strings.TrimLeft(tag,")")
+	tag = strings.TrimRight(tag,")")
 	tag_list := strings.Split(tag,"(")
 
 	if len(tag_list) != 2{
@@ -94,7 +94,8 @@ func ParseFormTagString(tag string) ( error,string,string){
 
 
 
-func ParseString(tag string) (fields map[string]string){
+func ParseString(tag string)  map[string]string{
+	fields := map[string]string{}
 	if len(tag) == 0{
 		// use default value
 	}else{
@@ -132,34 +133,37 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 		panic("CharFiled Must be string")
 
 	}
-
 	dest_length := len(dest_value)
-	MaxLegth,err1 := strconv.Atoi(fields["MaxLength"])
-	MinLegth,err2 := strconv.Atoi(fields["MinLength"])
-	errormessage[fieldname] = fieldname + " error,"
-	if err1 != nil{
-		errormessage[fieldname] = errormessage[fieldname].(string) + "MaxLength can not be " + fields["MaxLength"]
-		err = err1
-		char.HasError = true
-	}
+	errormessage[fieldname] = ""
+	 if _,ok := fields["MaxLength"];ok{
+		 MaxLegth,err1 := strconv.Atoi(fields["MaxLength"])
+		 if err1 != nil{
+			 errormessage[fieldname] = errormessage[fieldname].(string) + "MaxLength can not be " + fields["MaxLength"]
+			 err = err1
+			 char.HasError = true
+		 }
+		 if MaxLegth > 0 && dest_length > MaxLegth{
+			 errormessage[fieldname] = errormessage[fieldname].(string) + "Max-Legth is Over " + fields["MaxLength"]
+			 err = OverMaxLengthError
+			 char.HasError = true
+		 }
+	 }
 
-	if MaxLegth > 0 && dest_length > MaxLegth{
-		errormessage[fieldname] = errormessage[fieldname].(string) + ";Max-Legth is Over " + fields["MaxLength"]
-		err = OverMaxLengthError
-		char.HasError = true
-	}
+	 if _,ok := fields["MinLength"];ok{
+		 MinLegth,err2 := strconv.Atoi(fields["MinLength"])
+		 if err2 != nil{
+			 errormessage[fieldname] = fieldname + " error,MinLength can not be " + fields["MinLength"]
+			 err = err2
+			 char.HasError = true
+		 }
 
-	if err2 != nil{
-		errormessage[fieldname] = fieldname + " error,MinLength can not be " + fields["MinLength"]
-		err = err2
-		char.HasError = true
-	}
+		 if MinLegth > 0 && dest_length  < MinLegth{
+			 errormessage[fieldname] = errormessage[fieldname].(string) + ";Min-Legth is Less " + fields["MinLength"]
+			 err = LessMinLengthError
+			 char.HasError = true
+		 }
+	 }
 
-	if MinLegth > 0 && dest_length  < MinLegth{
-		errormessage[fieldname] = errormessage[fieldname].(string) + ";Min-Legth is Less " + fields["MinLength"]
-		err = LessMinLengthError
-		char.HasError = true
-	}
     if fields["Required"] == "true" {
     	char.Required = true
     	if dest_length == 0 {
@@ -170,6 +174,7 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 
 	}
 	char.ErrorMessage = errormessage
+
 	return err
 }
 
@@ -193,7 +198,7 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 	var dest_value int64
 	MaxValue,err1 := strconv.Atoi(fields["MaxValue"])
 	MinValue,err2 := strconv.Atoi(fields["MinValue"])
-	errormessage[fieldname] = fieldname + " error,"
+	errormessage[fieldname] = ""
 
 	switch dest.(type) {
 	case int8,int16,int32,int64,int:

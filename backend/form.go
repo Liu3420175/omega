@@ -1,8 +1,15 @@
 package backend
 
+import "omega/form"
+
+type Form struct {
+
+	form.Form
+}
+
 type UserLoginForm struct {
-	UserName       string
-	Password       string
+	UserName       string           `form:"CharField(Required=true,MaxLength=128)"`
+	Password       string           `form:"CharField(Required=true,MinLength=8)"`
 }
 
 
