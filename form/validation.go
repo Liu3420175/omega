@@ -38,6 +38,19 @@ func (form *Form)NewIntegerField (tags string,fieldname string ,dest interface{}
 }
 
 
+func (form *Form) NewEmailField (tags string,fieldname string ,dest interface{}) (err error,valid Validator) {
+	emailfield := new(EmailField)
+	err = emailfield.ParseTagString(tags,fieldname,dest)
+	form.HasError = form.HasError || emailfield.HasError
+	if form.ErrorMessage == nil {
+		form.ErrorMessage =  map[string]interface{}{}
+	}
+	form.ErrorMessage[fieldname] = emailfield.ErrorMessage[fieldname]
+	valid = emailfield
+	return err,valid
+
+}
+
 
 func (form *Form) Valid(object interface{}) (err error,valid Validator) {
 
@@ -72,6 +85,11 @@ func (form *Form) Valid(object interface{}) (err error,valid Validator) {
 			  if errT != nil{
 				err = errT
 			  }
+		case "EmailField":
+			errT,valid = form.NewEmailField(tags,fieldname,value)
+			if errT != nil{
+				err = errT
+			}
 		}
 
 	}

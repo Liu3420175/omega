@@ -5,6 +5,8 @@ import (
 	"errors"
 	//"encoding/json"
 	"strconv"
+	"regexp"
+	"net/url"
 )
 
 const TagName = "form"
@@ -18,6 +20,8 @@ var (
      RequiredError = errors.New("Field Required")
      OverMaxValueError = errors.New("Over MaxValue")
      LessMinValueError = errors.New("Less MinValue")
+     EmailFormatError = errors.New("Email Format Error")
+     URLFormatError = errors.New("Enter a valid URL")
 
 )
 
@@ -50,6 +54,21 @@ type FloatField struct {
 	MinValue        float64
 
 }
+
+
+type EmailField struct {
+	CharField
+}
+
+
+
+type URLField struct {
+	CharField
+}
+
+
+
+
 
 //type DateField struct{
 //	BaseField
@@ -141,11 +160,15 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 			 errormessage[fieldname] = errormessage[fieldname].(string) + "MaxLength can not be " + fields["MaxLength"]
 			 err = err1
 			 char.HasError = true
+			 char.ErrorMessage = errormessage
+			 return err
 		 }
 		 if MaxLegth > 0 && dest_length > MaxLegth{
 			 errormessage[fieldname] = errormessage[fieldname].(string) + "Max-Legth is Over " + fields["MaxLength"]
 			 err = OverMaxLengthError
+			 char.ErrorMessage = errormessage
 			 char.HasError = true
+			 return err
 		 }
 	 }
 
@@ -155,12 +178,16 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 			 errormessage[fieldname] = fieldname + " error,MinLength can not be " + fields["MinLength"]
 			 err = err2
 			 char.HasError = true
+			 char.ErrorMessage = errormessage
+			 return err
 		 }
 
 		 if MinLegth > 0 && dest_length  < MinLegth{
 			 errormessage[fieldname] = errormessage[fieldname].(string) + ";Min-Legth is Less " + fields["MinLength"]
 			 err = LessMinLengthError
 			 char.HasError = true
+			 char.ErrorMessage = errormessage
+			 return err
 		 }
 	 }
 
@@ -170,11 +197,12 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 			err = RequiredError
 			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
 			char.HasError = true
+			char.ErrorMessage = errormessage
+			return err
 		}
 
 	}
 	char.ErrorMessage = errormessage
-
 	return err
 }
 
@@ -183,6 +211,7 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 func (char *CharField) HasErrors() bool {
 	 return char.HasError != true
 }
+
 
 func (char *CharField) Errors() map[string]interface{}{
 	return char.ErrorMessage
@@ -211,24 +240,32 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 		err = err1
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + "MaxValue can not be " + fields["MaxValue"]
+		intfield.ErrorMessage = errormessage
+		return err
 	}
 
 	if dest_value > int64(MaxValue) {
 		err = OverMaxValueError
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be greater than " + fields["MaxValue"]
+		intfield.ErrorMessage = errormessage
+		return err
 	}
 
 	if err2 != nil {
 		err = err2
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + "MinValue can not be " + fields["MinValue"]
+		intfield.ErrorMessage = errormessage
+		return err
 	}
 
 	if dest_value < int64(MinValue) {
 		err = LessMinValueError
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be less than " + fields["MinValue"]
+		intfield.ErrorMessage = errormessage
+		return err
 	}
 
 	if fields["Required"] == "true" {
@@ -236,9 +273,12 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 		if dest_value == 0 {
 			err = RequiredError
 			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
+			intfield.ErrorMessage = errormessage
 			intfield.HasError = true
+			return err
 		}
 	}
+	intfield.ErrorMessage = errormessage
 	return err
 	}
 
@@ -255,3 +295,173 @@ func ( intfield *IntegerField) Errors() map[string]interface{}{
 }
 
 
+
+func (email *EmailField) HasErrors() bool {
+	return email.HasError != true
+}
+
+func (email *EmailField) Errors() map[string]interface{}{
+	return email.ErrorMessage
+}
+
+
+func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interface{}) error {
+	errormessage := map[string]interface{}{}
+	fields := ParseString(tag)
+	var err error
+	var dest_value string
+	switch dest.(type) {
+	case string:
+		dest_value = dest.(string)
+	default:
+		panic("EmailFiled Must be string")
+
+	}
+    emailPattern := regexp.MustCompile(`^[\w!#$%&'*+/=?^_` + "`" + `{|}~-]+(?:\.[\w!#$%&'*+/=?^_` + "`" + `{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[a-zA-Z0-9](?:[\w-]*[\w])?$`)
+    if !emailPattern.MatchString(dest_value){
+		errormessage[fieldname] = "Email Format Error"
+		err = EmailFormatError
+		email.HasError = true
+		email.ErrorMessage = errormessage
+		return err
+	}
+	dest_length := len(dest_value)
+	errormessage[fieldname] = ""
+	if _,ok := fields["MaxLength"];ok{
+		MaxLegth,err1 := strconv.Atoi(fields["MaxLength"])
+		if err1 != nil{
+			errormessage[fieldname] = errormessage[fieldname].(string) + "MaxLength can not be " + fields["MaxLength"]
+			err = err1
+			email.HasError = true
+			email.ErrorMessage = errormessage
+			return err
+		}
+		if MaxLegth > 0 && dest_length > MaxLegth{
+			errormessage[fieldname] = errormessage[fieldname].(string) + "Max-Legth is Over " + fields["MaxLength"]
+			err = OverMaxLengthError
+			email.HasError = true
+			email.ErrorMessage = errormessage
+			return err
+		}
+	}
+
+	if _,ok := fields["MinLength"];ok{
+		MinLegth,err2 := strconv.Atoi(fields["MinLength"])
+		if err2 != nil{
+			errormessage[fieldname] = fieldname + " error,MinLength can not be " + fields["MinLength"]
+			err = err2
+			email.HasError = true
+			email.ErrorMessage = errormessage
+			return err
+		}
+
+		if MinLegth > 0 && dest_length  < MinLegth{
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";Min-Legth is Less " + fields["MinLength"]
+			err = LessMinLengthError
+			email.HasError = true
+			email.ErrorMessage = errormessage
+			return err
+		}
+	}
+
+	if fields["Required"] == "true" {
+		email.Required = true
+		if dest_length == 0 {
+			err = RequiredError
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
+			email.HasError = true
+			email.ErrorMessage = errormessage
+			return err
+		}
+
+	}
+	email.ErrorMessage = errormessage
+	return err
+}
+
+
+
+func (urlfield *URLField) HasErrors() bool {
+	return urlfield.HasError != true
+}
+
+func (urlfield *URLField) Errors() map[string]interface{}{
+	return urlfield.ErrorMessage
+}
+
+func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest interface{}) error {
+	errormessage := map[string]interface{}{}
+	fields := ParseString(tag)
+	var err error
+	var dest_value string
+	switch dest.(type) {
+	case string:
+		dest_value = dest.(string)
+	default:
+		panic("CharFiled Must be string")
+
+	}
+	Url ,_ := url.Parse(dest_value)
+	if len(Url.Host) == 0{
+		errormessage[fieldname] = "Enter a valid URL."
+		err = URLFormatError
+		urlfield.HasError = true
+		urlfield.ErrorMessage = errormessage
+		return err
+
+	}
+	dest_length := len(dest_value)
+	errormessage[fieldname] = ""
+	if _,ok := fields["MaxLength"];ok{
+		MaxLegth,err1 := strconv.Atoi(fields["MaxLength"])
+		if err1 != nil{
+			errormessage[fieldname] = errormessage[fieldname].(string) + "MaxLength can not be " + fields["MaxLength"]
+			err = err1
+			urlfield.HasError = true
+			urlfield.ErrorMessage = errormessage
+			return err
+		}
+		if MaxLegth > 0 && dest_length > MaxLegth{
+			errormessage[fieldname] = errormessage[fieldname].(string) + "Max-Legth is Over " + fields["MaxLength"]
+			err = OverMaxLengthError
+			urlfield.ErrorMessage = errormessage
+			urlfield.HasError = true
+			return err
+		}
+	}
+
+	if _,ok := fields["MinLength"];ok{
+		MinLegth,err2 := strconv.Atoi(fields["MinLength"])
+		if err2 != nil{
+			errormessage[fieldname] = fieldname + " error,MinLength can not be " + fields["MinLength"]
+			err = err2
+			urlfield.HasError = true
+			urlfield.ErrorMessage = errormessage
+			return err
+		}
+
+		if MinLegth > 0 && dest_length  < MinLegth{
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";Min-Legth is Less " + fields["MinLength"]
+			err = LessMinLengthError
+			urlfield.HasError = true
+			urlfield.ErrorMessage = errormessage
+			return err
+		}
+	}
+
+	if fields["Required"] == "true" {
+		urlfield.Required = true
+		if dest_length == 0 {
+			err = RequiredError
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
+			urlfield.HasError = true
+			urlfield.ErrorMessage = errormessage
+			return err
+		}
+
+	}
+	urlfield.ErrorMessage = errormessage
+	return err
+
+
+}

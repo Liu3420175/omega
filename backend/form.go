@@ -8,7 +8,7 @@ type Form struct {
 }
 
 type UserLoginForm struct {
-	UserName       string           `form:"CharField(Required=true,MaxLength=128)"`
+	UserName       string           `form:"EmailField(Required=true,MaxLength=128)"`
 	Password       string           `form:"CharField(Required=true,MinLength=8)"`
 }
 
