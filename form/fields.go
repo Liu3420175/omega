@@ -68,12 +68,26 @@ type URLField struct {
 
 
 
+type BooleanField struct {
+	BaseField
+}
 
 
-//type DateField struct{
-//	BaseField
+type ChoiceField struct {
+	Choices         []interface{}
+	Default         interface{}
+}
 
-//}
+type DateField struct{
+	BaseField
+	Date            string
+}
+
+
+type DateTimeField struct {
+	BaseField
+	DateTime        string
+}
 
 type Validator interface {
 	ParseTagString(string, string, interface{}) error
@@ -295,6 +309,79 @@ func ( intfield *IntegerField) Errors() map[string]interface{}{
 }
 
 
+func (float *FloatField) HasErrors() bool {
+	return float.HasError != true
+}
+
+
+func (float *FloatField) Errors() map[string]interface{}{
+	return float.ErrorMessage
+}
+
+
+func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interface{}) error{
+	errormessage := map[string]interface{}{}
+	fields := ParseString(tag)
+	var err error
+	var dest_value float64
+	MaxValue,err1 := strconv.ParseFloat(fields["MaxValue"],64)
+	MinValue,err2 := strconv.ParseFloat(fields["MinValue"],64)
+	errormessage[fieldname] = ""
+
+	switch dest.(type) {
+	case float32,float64:
+		dest_value = dest.(float64)
+	default:
+		panic("FloatField must be Float")
+	}
+
+	if err1 != nil {
+		err = err1
+		float.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + "MaxValue can not be " + fields["MaxValue"]
+		float.ErrorMessage = errormessage
+		return err
+	}
+
+	if dest_value > MaxValue {
+		err = OverMaxValueError
+		float.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be greater than " + fields["MaxValue"]
+		float.ErrorMessage = errormessage
+		return err
+	}
+
+	if err2 != nil {
+		err = err2
+		float.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + "MinValue can not be " + fields["MinValue"]
+		float.ErrorMessage = errormessage
+		return err
+	}
+
+	if dest_value < MinValue {
+		err = LessMinValueError
+		float.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be less than " + fields["MinValue"]
+		float.ErrorMessage = errormessage
+		return err
+	}
+
+	if fields["Required"] == "true" {
+		float.Required = true
+		if dest_value == 0 { // TODO you dai gai jin
+			err = RequiredError
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
+			float.ErrorMessage = errormessage
+			float.HasError = true
+			return err
+		}
+	}
+	float.ErrorMessage = errormessage
+	return err
+
+}
+
 
 func (email *EmailField) HasErrors() bool {
 	return email.HasError != true
@@ -462,6 +549,5 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 	}
 	urlfield.ErrorMessage = errormessage
 	return err
-
 
 }
