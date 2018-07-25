@@ -26,6 +26,7 @@ type EmailVerifyForm struct {
 	Code            string
 }
 
+
 type PasswordRecoverForm struct {
 	Password1       string
 	Password2       string

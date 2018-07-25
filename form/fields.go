@@ -23,7 +23,8 @@ var LessMinValueError = errors.New("Less MinValue")
 type BaseField struct {
 	Required        bool
 	HelpText        string
-	ErrorMessage    map[string]string
+	HasError        bool
+	ErrorMessage    map[string]interface{}
 }
 
 
@@ -54,6 +55,13 @@ type FloatField struct {
 
 //}
 
+type Former interface {
+	ParseTagString(string, string, interface{}) error
+	HasErrors()    bool
+	Errors()     map[string]interface{}
+}
+
+
 
 func Interface2Int(value interface{}) int {
 	switch value.(type) {
@@ -80,7 +88,8 @@ func ParseFormTagString(tag string,fieldname string ,value interface{}) (err err
 
 	switch field {
 	case "CharField":
-		err,errormessage,object = ParseCharField(tag_value,fieldname,value.(string))
+		tag_value+=""
+		//err,errormessage,object = ParseCharField(tag_value,fieldname,value.(string))
 
 	default:
 
@@ -89,23 +98,7 @@ func ParseFormTagString(tag string,fieldname string ,value interface{}) (err err
 	return err,errormessage,object
 }
 
-
-
-
-
-func ParseCharField(tag string,fieldname string ,dest string) (error,map[string]string,*CharField) {
-	/*
-	   tag : tag value
-	   field:field name of strcuct object
-	   dest : field value
-	   is_ok:field  Required
-	 */
-	fields := map[string]string{}
-	errormessage := map[string]string{}
-	var char *CharField
-	char.Required = false
-
-	var err error
+func ParseString(tag string) (fields map[string]string){
 	if len(tag) == 0{
 		// use default value
 	}else{
@@ -120,43 +113,144 @@ func ParseCharField(tag string,fieldname string ,dest string) (error,map[string]
 
 		}
 	}
-	dest_length := len(dest)
+	return fields
+}
+
+
+func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface{}) error{
+
+	/*
+	   tag : tag value
+	   field:field name of strcuct object
+	   dest : field value
+	   is_ok:field  Required
+	 */
+	errormessage := map[string]interface{}{}
+	fields := ParseString(tag)
+	var err error
+    var dest_value string
+	switch dest.(type) {
+	case string:
+		dest_value = dest.(string)
+	default:
+		panic("CharFiled Must be string")
+
+	}
+
+	dest_length := len(dest_value)
 	MaxLegth,err1 := strconv.Atoi(fields["MaxLength"])
 	MinLegth,err2 := strconv.Atoi(fields["MinLength"])
+	errormessage[fieldname] = fieldname + " error,"
 	if err1 != nil{
-		errormessage[fieldname] = fieldname + " error,MaxLength ca be " + fields["MaxLength"]
+		errormessage[fieldname] = errormessage[fieldname].(string) + "MaxLength can not be " + fields["MaxLength"]
 		err = err1
+		char.HasError = true
 	}
 
 	if MaxLegth > 0 && dest_length > MaxLegth{
-		errormessage[fieldname] = errormessage[fieldname] + ";MaxLegth is Over " + fields["MaxLength"]
+		errormessage[fieldname] = errormessage[fieldname].(string) + ";Max-Legth is Over " + fields["MaxLength"]
 		err = OverMaxLengthError
+		char.HasError = true
 	}
 
 	if err2 != nil{
-		errormessage[fieldname] = fieldname + " error,MinLength ca be " + fields["MinLength"]
+		errormessage[fieldname] = fieldname + " error,MinLength can not be " + fields["MinLength"]
 		err = err2
+		char.HasError = true
 	}
 
 	if MinLegth > 0 && dest_length  < MinLegth{
-		errormessage[fieldname] = errormessage[fieldname] + ";MinLegth is Less " + fields["MinLength"]
+		errormessage[fieldname] = errormessage[fieldname].(string) + ";Min-Legth is Less " + fields["MinLength"]
 		err = LessMinLengthError
+		char.HasError = true
 	}
     if fields["Required"] == "true" {
     	char.Required = true
     	if dest_length == 0 {
 			err = RequiredError
-			errormessage[fieldname] = errormessage[fieldname] + ";field required"
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
+			char.HasError = true
 		}
 
 	}
-	return err,errormessage,char
+	char.ErrorMessage = errormessage
+	return err
 }
 
 
-func ParseIntegerField(tag string,) (err error,errormessage map[string]string,field IntegerField){
 
-
-
-	return err,errormessage,IntegerField{}
+func (char *CharField) HasErrors() bool {
+	 return char.HasError != true
 }
+
+func (char *CharField) Errors() map[string]interface{}{
+	return char.ErrorMessage
+}
+
+
+
+
+func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest interface{}) error{
+	errormessage := map[string]interface{}{}
+	fields := ParseString(tag)
+	var err error
+	var dest_value int64
+	MaxValue,err1 := strconv.Atoi(fields["MaxValue"])
+	MinValue,err2 := strconv.Atoi(fields["MinValue"])
+	errormessage[fieldname] = fieldname + " error,"
+
+	switch dest.(type) {
+	case int8,int16,int32,int64,int:
+		dest_value = dest.(int64)
+	default:
+		panic("IntegerField must be integer")
+	}
+
+	if err1 != nil {
+		err = err1
+		intfield.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + "MaxValue can not be " + fields["MaxValue"]
+	}
+
+	if dest_value > int64(MaxValue) {
+		err = OverMaxValueError
+		intfield.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be greater than " + fields["MaxValue"]
+	}
+
+	if err2 != nil {
+		err = err2
+		intfield.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + "MinValue can not be " + fields["MinValue"]
+	}
+
+	if dest_value < int64(MinValue) {
+		err = LessMinValueError
+		intfield.HasError = true
+		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be less than " + fields["MinValue"]
+	}
+
+	if fields["Required"] == "true" {
+		intfield.Required = true
+		if dest_value == 0 {
+			err = RequiredError
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
+			intfield.HasError = true
+		}
+	}
+	return err
+	}
+
+
+
+func (intfield *IntegerField)  HasErrors() bool {
+	return intfield.HasError != true
+}
+
+
+
+func ( intfield *IntegerField) Errors() map[string]interface{}{
+	return intfield.ErrorMessage
+}
+
+
