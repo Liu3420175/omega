@@ -2,7 +2,7 @@ package form
 
 import (
 	"strings"
-	"github.com/pkg/errors"
+	"errors"
 	//"encoding/json"
 	"strconv"
 )
@@ -13,7 +13,11 @@ const TagName = "form"
 
 var TagFormatError = errors.New("form tag format error")
 var OverMaxLengthError = errors.New("Over MaxLength")
-var LessMixLengthError = errors.New("Less MixLength")
+var LessMinLengthError = errors.New("Less MinLength")
+var RequiredError = errors.New("Field Required")
+var OverMaxValueError = errors.New("Over MaxValue")
+var LessMinValueError = errors.New("Less MinValue")
+
 
 
 type BaseField struct {
@@ -28,7 +32,6 @@ type CharField struct {
 	BaseField
 	MaxLength        int
 	MinLength        int
-	Default          string
 }
 
 
@@ -36,7 +39,6 @@ type IntegerField struct {
 	BaseField
 	MaxValue        int64
 	MixValue        int64
-	Default         int64
 }
 
 
@@ -44,7 +46,7 @@ type FloatField struct {
 	BaseField
 	MaxValue        float64
 	MinValue        float64
-	Default         float64
+
 }
 
 //type DateField struct{
@@ -65,7 +67,7 @@ func Interface2Int(value interface{}) int {
 
 
 
-func ParseFormTagString(tag string) (err error,errormessage map[string]string,object interface{}){
+func ParseFormTagString(tag string,fieldname string ,value interface{}) (err error,errormessage map[string]string,object interface{}){
 	// first remove ")"
 	tag = strings.TrimSpace(tag)
 	tag = strings.TrimLeft(tag,")")
@@ -78,7 +80,7 @@ func ParseFormTagString(tag string) (err error,errormessage map[string]string,ob
 
 	switch field {
 	case "CharField":
-		err,errormessage,object = ParseCharField(tag_value)
+		err,errormessage,object = ParseCharField(tag_value,fieldname,value.(string))
 
 	default:
 
@@ -91,14 +93,18 @@ func ParseFormTagString(tag string) (err error,errormessage map[string]string,ob
 
 
 
-func ParseCharField(tag string,fieldname string ,dest string) (error,map[string]string) {
+func ParseCharField(tag string,fieldname string ,dest string) (error,map[string]string,*CharField) {
 	/*
 	   tag : tag value
 	   field:field name of strcuct object
 	   dest : field value
+	   is_ok:field  Required
 	 */
 	fields := map[string]string{}
 	errormessage := map[string]string{}
+	var char *CharField
+	char.Required = false
+
 	var err error
 	if len(tag) == 0{
 		// use default value
@@ -134,13 +140,21 @@ func ParseCharField(tag string,fieldname string ,dest string) (error,map[string]
 
 	if MinLegth > 0 && dest_length  < MinLegth{
 		errormessage[fieldname] = errormessage[fieldname] + ";MinLegth is Less " + fields["MinLength"]
-		err = LessMixLengthError
+		err = LessMinLengthError
 	}
+    if fields["Required"] == "true" {
+    	char.Required = true
+    	if dest_length == 0 {
+			err = RequiredError
+			errormessage[fieldname] = errormessage[fieldname] + ";field required"
+		}
 
+	}
+	return err,errormessage,char
 }
 
 
-func ParseIntegerField(tag string) (err error,errormessage map[string]string,field IntegerField){
+func ParseIntegerField(tag string,) (err error,errormessage map[string]string,field IntegerField){
 
 
 
