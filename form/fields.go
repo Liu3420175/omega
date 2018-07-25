@@ -11,14 +11,15 @@ const TagName = "form"
 
 
 
-var TagFormatError = errors.New("form tag format error")
-var OverMaxLengthError = errors.New("Over MaxLength")
-var LessMinLengthError = errors.New("Less MinLength")
-var RequiredError = errors.New("Field Required")
-var OverMaxValueError = errors.New("Over MaxValue")
-var LessMinValueError = errors.New("Less MinValue")
+var (
+	 TagFormatError = errors.New("form tag format error")
+     OverMaxLengthError = errors.New("Over MaxLength")
+     LessMinLengthError = errors.New("Less MinLength")
+     RequiredError = errors.New("Field Required")
+     OverMaxValueError = errors.New("Over MaxValue")
+     LessMinValueError = errors.New("Less MinValue")
 
-
+)
 
 type BaseField struct {
 	Required        bool
@@ -55,7 +56,7 @@ type FloatField struct {
 
 //}
 
-type Former interface {
+type Validator interface {
 	ParseTagString(string, string, interface{}) error
 	HasErrors()    bool
 	Errors()     map[string]interface{}
@@ -75,28 +76,23 @@ func Interface2Int(value interface{}) int {
 
 
 
-func ParseFormTagString(tag string,fieldname string ,value interface{}) (err error,errormessage map[string]string,object interface{}){
+func ParseFormTagString(tag string) ( error,string,string){
 	// first remove ")"
+
+	var err error
 	tag = strings.TrimSpace(tag)
 	tag = strings.TrimLeft(tag,")")
 	tag_list := strings.Split(tag,"(")
+
 	if len(tag_list) != 2{
 		err = TagFormatError
 	}
 
-	field ,tag_value := tag_list[0] , tag_list[1]
-
-	switch field {
-	case "CharField":
-		tag_value+=""
-		//err,errormessage,object = ParseCharField(tag_value,fieldname,value.(string))
-
-	default:
-
-	}
-
-	return err,errormessage,object
+	fieldtype ,tag_value := tag_list[0] , tag_list[1]
+	return err,fieldtype,tag_value
 }
+
+
 
 func ParseString(tag string) (fields map[string]string){
 	if len(tag) == 0{

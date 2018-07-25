@@ -55,6 +55,7 @@ func  GetSearchResults(query orm.QuerySeter,fields []string,search_term string) 
 }
 
 func StructToMap(object interface{}) map[string]string{
+	// TODO 有待改进，可以用反射
 	v := reflect.ValueOf(object)
 	if v.Kind() == reflect.Struct {
 		var result map[string]string
