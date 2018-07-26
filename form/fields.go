@@ -22,6 +22,8 @@ var (
      LessMinValueError = errors.New("Less MinValue")
      EmailFormatError = errors.New("Email Format Error")
      URLFormatError = errors.New("Enter a valid URL")
+     ChoiceFieldFormatError = errors.New("ChoiceField Format is not valid")
+     CHoiceError = errors.New("Choice Error")
 
 )
 
@@ -74,6 +76,7 @@ type BooleanField struct {
 
 
 type ChoiceField struct {
+	BaseField
 	Choices         []interface{}
 	Default         interface{}
 }
@@ -550,4 +553,81 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 	urlfield.ErrorMessage = errormessage
 	return err
 
+}
+
+
+func (choice *ChoiceField) HasErrors() bool {
+	return choice.HasError != true
+}
+
+
+func (choice *ChoiceField) Errors() map[string]interface{}{
+	return choice.ErrorMessage
+}
+
+func checkeleminslice(s []string,elem interface{}) bool {
+	switch elem.(type) {
+	case string:
+		for _,v := range s {
+			if v == elem.(string){
+				return true
+			}
+		}
+	case int,int8,int16,int32,int64:
+		for _,v := range s {
+			v_int,_ := strconv.Atoi(v)
+			if v_int == elem.(int){
+				return true
+			}
+		}
+	default:
+		return false
+	}
+	return false
+}
+
+func (choice *ChoiceField) ParseTagString(tag string,fieldname string ,dest interface{}) error{
+	errormessage := map[string]interface{}{}
+	fields := ParseString(tag)
+	var err error
+	var dest_value string
+	switch dest.(type) {
+	case string:
+		dest_value = dest.(string)
+	default:
+		panic("ChoiceField Must be string")
+	}
+	if (!strings.HasPrefix(dest_value,"[") && !strings.HasSuffix(dest_value,"]")) || (!strings.HasPrefix(dest_value,"(") && !strings.HasSuffix(dest_value,")")){
+		errormessage[fieldname] = "ChoiceField Format is not valid."
+		err = ChoiceFieldFormatError
+		choice.HasError = true
+		choice.ErrorMessage = errormessage
+		return err
+	}
+	if strings.HasPrefix(dest_value,"["){
+		dest_value = strings.TrimLeft(dest_value,"[")
+		dest_value = strings.TrimRight(dest_value,"]")
+		dest_list := strings.Split(dest_value,",")
+		ok := checkeleminslice(dest_list,dest)
+		if !ok{
+			errormessage[fieldname] = "Choice Error"
+			err = CHoiceError
+			choice.HasError = true
+			choice.ErrorMessage = errormessage
+			return err
+		}
+	}else{
+		dest_value = strings.TrimLeft(dest_value,"(")
+		dest_value = strings.TrimRight(dest_value,")")
+		dest_list := strings.Split(dest_value,",")
+		ok := checkeleminslice(dest_list,dest)
+		if !ok{
+			errormessage[fieldname] = "Choice Error"
+			err = CHoiceError
+			choice.HasError = true
+			choice.ErrorMessage = errormessage
+			return err
+		}
+	}
+	
 }
