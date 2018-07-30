@@ -629,5 +629,5 @@ func (choice *ChoiceField) ParseTagString(tag string,fieldname string ,dest inte
 			return err
 		}
 	}
-	
+
 }
