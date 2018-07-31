@@ -23,8 +23,8 @@ var (
      EmailFormatError = errors.New("Email Format Error")
      URLFormatError = errors.New("Enter a valid URL")
      ChoiceFieldFormatError = errors.New("ChoiceField Format is not valid")
-     CHoiceError = errors.New("Choice Error")
-
+     ChoiceError = errors.New("Choice Error")
+     ChoiceDefaultError = errors.New("Default must be set")
 )
 
 type BaseField struct {
@@ -93,7 +93,7 @@ type DateTimeField struct {
 }
 
 type Validator interface {
-	ParseTagString(string, string, interface{}) error
+	ParseTagString(string, string, interface{}) (error,interface{})
 	HasErrors()    bool
 	Errors()     map[string]interface{}
 }
@@ -150,7 +150,7 @@ func ParseString(tag string)  map[string]string{
 }
 
 
-func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface{}) error{
+func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface{}) (error,interface{}){
 
 	/*
 	   tag : tag value
@@ -178,14 +178,14 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 			 err = err1
 			 char.HasError = true
 			 char.ErrorMessage = errormessage
-			 return err
+			 return err,""
 		 }
 		 if MaxLegth > 0 && dest_length > MaxLegth{
 			 errormessage[fieldname] = errormessage[fieldname].(string) + "Max-Legth is Over " + fields["MaxLength"]
 			 err = OverMaxLengthError
 			 char.ErrorMessage = errormessage
 			 char.HasError = true
-			 return err
+			 return err,nil
 		 }
 	 }
 
@@ -196,7 +196,7 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 			 err = err2
 			 char.HasError = true
 			 char.ErrorMessage = errormessage
-			 return err
+			 return err,nil
 		 }
 
 		 if MinLegth > 0 && dest_length  < MinLegth{
@@ -204,7 +204,7 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 			 err = LessMinLengthError
 			 char.HasError = true
 			 char.ErrorMessage = errormessage
-			 return err
+			 return err,nil
 		 }
 	 }
 
@@ -215,12 +215,12 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
 			char.HasError = true
 			char.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 
 	}
 	char.ErrorMessage = errormessage
-	return err
+	return err,nil
 }
 
 
@@ -237,7 +237,7 @@ func (char *CharField) Errors() map[string]interface{}{
 
 
 
-func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest interface{}) error{
+func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest interface{}) (error,interface{}){
 	errormessage := map[string]interface{}{}
 	fields := ParseString(tag)
 	var err error
@@ -258,7 +258,7 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + "MaxValue can not be " + fields["MaxValue"]
 		intfield.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if dest_value > int64(MaxValue) {
@@ -266,7 +266,7 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be greater than " + fields["MaxValue"]
 		intfield.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if err2 != nil {
@@ -274,7 +274,7 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + "MinValue can not be " + fields["MinValue"]
 		intfield.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if dest_value < int64(MinValue) {
@@ -282,7 +282,7 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 		intfield.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be less than " + fields["MinValue"]
 		intfield.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if fields["Required"] == "true" {
@@ -292,11 +292,11 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
 			intfield.ErrorMessage = errormessage
 			intfield.HasError = true
-			return err
+			return err,nil
 		}
 	}
 	intfield.ErrorMessage = errormessage
-	return err
+	return err,nil
 	}
 
 
@@ -322,7 +322,7 @@ func (float *FloatField) Errors() map[string]interface{}{
 }
 
 
-func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interface{}) error{
+func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interface{}) (error,interface{}){
 	errormessage := map[string]interface{}{}
 	fields := ParseString(tag)
 	var err error
@@ -343,7 +343,7 @@ func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interf
 		float.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + "MaxValue can not be " + fields["MaxValue"]
 		float.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if dest_value > MaxValue {
@@ -351,7 +351,7 @@ func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interf
 		float.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be greater than " + fields["MaxValue"]
 		float.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if err2 != nil {
@@ -359,7 +359,7 @@ func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interf
 		float.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + "MinValue can not be " + fields["MinValue"]
 		float.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if dest_value < MinValue {
@@ -367,7 +367,7 @@ func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interf
 		float.HasError = true
 		errormessage[fieldname] = errormessage[fieldname].(string) + ";value can not be less than " + fields["MinValue"]
 		float.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 
 	if fields["Required"] == "true" {
@@ -377,11 +377,11 @@ func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interf
 			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
 			float.ErrorMessage = errormessage
 			float.HasError = true
-			return err
+			return err,nil
 		}
 	}
 	float.ErrorMessage = errormessage
-	return err
+	return err,nil
 
 }
 
@@ -395,7 +395,7 @@ func (email *EmailField) Errors() map[string]interface{}{
 }
 
 
-func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interface{}) error {
+func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interface{}) (error,interface{}) {
 	errormessage := map[string]interface{}{}
 	fields := ParseString(tag)
 	var err error
@@ -413,7 +413,7 @@ func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interf
 		err = EmailFormatError
 		email.HasError = true
 		email.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
 	dest_length := len(dest_value)
 	errormessage[fieldname] = ""
@@ -424,14 +424,14 @@ func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interf
 			err = err1
 			email.HasError = true
 			email.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 		if MaxLegth > 0 && dest_length > MaxLegth{
 			errormessage[fieldname] = errormessage[fieldname].(string) + "Max-Legth is Over " + fields["MaxLength"]
 			err = OverMaxLengthError
 			email.HasError = true
 			email.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 	}
 
@@ -442,7 +442,7 @@ func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interf
 			err = err2
 			email.HasError = true
 			email.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 
 		if MinLegth > 0 && dest_length  < MinLegth{
@@ -450,7 +450,7 @@ func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interf
 			err = LessMinLengthError
 			email.HasError = true
 			email.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 	}
 
@@ -461,12 +461,12 @@ func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interf
 			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
 			email.HasError = true
 			email.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 
 	}
 	email.ErrorMessage = errormessage
-	return err
+	return err,nil
 }
 
 
@@ -479,7 +479,7 @@ func (urlfield *URLField) Errors() map[string]interface{}{
 	return urlfield.ErrorMessage
 }
 
-func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest interface{}) error {
+func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest interface{}) (error,interface{}) {
 	errormessage := map[string]interface{}{}
 	fields := ParseString(tag)
 	var err error
@@ -497,7 +497,7 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 		err = URLFormatError
 		urlfield.HasError = true
 		urlfield.ErrorMessage = errormessage
-		return err
+		return err,nil
 
 	}
 	dest_length := len(dest_value)
@@ -509,14 +509,14 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 			err = err1
 			urlfield.HasError = true
 			urlfield.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 		if MaxLegth > 0 && dest_length > MaxLegth{
 			errormessage[fieldname] = errormessage[fieldname].(string) + "Max-Legth is Over " + fields["MaxLength"]
 			err = OverMaxLengthError
 			urlfield.ErrorMessage = errormessage
 			urlfield.HasError = true
-			return err
+			return err,nil
 		}
 	}
 
@@ -527,7 +527,7 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 			err = err2
 			urlfield.HasError = true
 			urlfield.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 
 		if MinLegth > 0 && dest_length  < MinLegth{
@@ -535,7 +535,7 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 			err = LessMinLengthError
 			urlfield.HasError = true
 			urlfield.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 	}
 
@@ -546,12 +546,12 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
 			urlfield.HasError = true
 			urlfield.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 
 	}
 	urlfield.ErrorMessage = errormessage
-	return err
+	return err,nil
 
 }
 
@@ -586,7 +586,7 @@ func checkeleminslice(s []string,elem interface{}) bool {
 	return false
 }
 
-func (choice *ChoiceField) ParseTagString(tag string,fieldname string ,dest interface{}) error{
+func (choice *ChoiceField) ParseTagString(tag string,fieldname string ,dest interface{}) (error,interface{}){
 	errormessage := map[string]interface{}{}
 	fields := ParseString(tag)
 	var err error
@@ -602,32 +602,53 @@ func (choice *ChoiceField) ParseTagString(tag string,fieldname string ,dest inte
 		err = ChoiceFieldFormatError
 		choice.HasError = true
 		choice.ErrorMessage = errormessage
-		return err
+		return err,nil
 	}
+	var dest_list []string
 	if strings.HasPrefix(dest_value,"["){
 		dest_value = strings.TrimLeft(dest_value,"[")
 		dest_value = strings.TrimRight(dest_value,"]")
-		dest_list := strings.Split(dest_value,",")
+		dest_list = strings.Split(dest_value,",")
 		ok := checkeleminslice(dest_list,dest)
 		if !ok{
 			errormessage[fieldname] = "Choice Error"
-			err = CHoiceError
+			err = ChoiceError
 			choice.HasError = true
 			choice.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
 	}else{
 		dest_value = strings.TrimLeft(dest_value,"(")
 		dest_value = strings.TrimRight(dest_value,")")
-		dest_list := strings.Split(dest_value,",")
+		dest_list = strings.Split(dest_value,",")
 		ok := checkeleminslice(dest_list,dest)
 		if !ok{
 			errormessage[fieldname] = "Choice Error"
-			err = CHoiceError
+			err = ChoiceError
 			choice.HasError = true
 			choice.ErrorMessage = errormessage
-			return err
+			return err,nil
 		}
+	}
+
+	d,ok := fields["Default"]
+	if ok {
+		ok_ := checkeleminslice(dest_list,d)
+		if !ok_ {
+			errormessage[fieldname] = "Choice Error"
+			err = ChoiceError
+			choice.HasError = true
+			choice.ErrorMessage = errormessage
+			return err,nil
+		}
+		choice.Default = d
+		return nil,d
+	}else{
+		errormessage[fieldname] = "Choice Error"
+		err = ChoiceDefaultError
+		choice.HasError = true
+		choice.ErrorMessage = errormessage
+		return err,nil
 	}
 
 }
