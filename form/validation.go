@@ -79,6 +79,18 @@ func (form *Form)NewChoiceField(tags string,fieldname string ,dest interface{}) 
 }
 
 
+func (form *Form)NewDateField(tags string,fieldname string ,dest interface{}) (err error,valid Validator) {
+	datefield := new(DateField)
+	err,_ = datefield.ParseTagString(tags,fieldname,dest)
+	form.HasError = form.HasError || datefield.HasError
+	if form.ErrorMessage == nil {
+		form.ErrorMessage =  map[string]interface{}{}
+	}
+	form.ErrorMessage[fieldname] = datefield.ErrorMessage[fieldname]
+	valid = datefield
+	return err,valid
+}
+
 
 func (form *Form) Valid(object interface{}) (err error,valid Validator) {
 
@@ -124,15 +136,25 @@ func (form *Form) Valid(object interface{}) (err error,valid Validator) {
 				err = errT
 			}
 		case "ChoiceField":
-			errT,valid = form.NewURLField(tags,fieldname,value)
+			errT,valid = form.NewChoiceField(tags,fieldname,value)
 			objE := objV.Elem()
 			if errT != nil{
 				err = errT
 			}
 			if objE.Field(i).CanSet(){
-				// TODO
+				// TODO set default value by refleak
 				//objE.Field(i).SetInt()
 			}
+		//case "DateFile":
+		//	errT,valid = form.NewURLField(tags,fieldname,value)
+		//	objE := objV.Elem()
+		//	if errT != nil{
+		//		err = errT
+		//	}
+		//	if objE.Field(i).CanSet(){
+		//		// TODO set default value by refleak
+				//objE.Field(i).S
+		//	}
 		}
 
 	}

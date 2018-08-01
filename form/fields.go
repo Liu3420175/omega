@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"regexp"
 	"net/url"
+	"time"
 )
 
 const TagName = "form"
@@ -25,6 +26,9 @@ var (
      ChoiceFieldFormatError = errors.New("ChoiceField Format is not valid")
      ChoiceError = errors.New("Choice Error")
      ChoiceDefaultError = errors.New("Default must be set")
+     CharFieldTypeError = errors.New("Char Field Type must be string")
+     IntFieldTypeError = errors.New("Int Field Type must be int")
+     FloatFieldTypeError = errors.New("Float Field Type must be float")
 )
 
 type BaseField struct {
@@ -83,13 +87,13 @@ type ChoiceField struct {
 
 type DateField struct{
 	BaseField
-	Date            string
+	//Date            string
 }
 
 
 type DateTimeField struct {
 	BaseField
-	DateTime        string
+	//DateTime        string
 }
 
 type Validator interface {
@@ -166,7 +170,8 @@ func (char *CharField)ParseTagString(tag string,fieldname string ,dest interface
 	case string:
 		dest_value = dest.(string)
 	default:
-		panic("CharFiled Must be string")
+		err = CharFieldTypeError
+		return err,nil
 
 	}
 	dest_length := len(dest_value)
@@ -250,7 +255,8 @@ func (intfield *IntegerField)ParseTagString(tag string,fieldname string ,dest in
 	case int8,int16,int32,int64,int:
 		dest_value = dest.(int64)
 	default:
-		panic("IntegerField must be integer")
+		err = IntFieldTypeError
+		return err,nil
 	}
 
 	if err1 != nil {
@@ -335,7 +341,8 @@ func (float *FloatField) ParseTagString(tag string,fieldname string ,dest interf
 	case float32,float64:
 		dest_value = dest.(float64)
 	default:
-		panic("FloatField must be Float")
+		err = FloatFieldTypeError
+		return err,nil
 	}
 
 	if err1 != nil {
@@ -404,7 +411,8 @@ func (email *EmailField) ParseTagString(tag string,fieldname string ,dest interf
 	case string:
 		dest_value = dest.(string)
 	default:
-		panic("EmailFiled Must be string")
+		err = CharFieldTypeError
+		return err,nil
 
 	}
     emailPattern := regexp.MustCompile(`^[\w!#$%&'*+/=?^_` + "`" + `{|}~-]+(?:\.[\w!#$%&'*+/=?^_` + "`" + `{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[a-zA-Z0-9](?:[\w-]*[\w])?$`)
@@ -488,7 +496,8 @@ func (urlfield *URLField) ParseTagString(tag string,fieldname string ,dest inter
 	case string:
 		dest_value = dest.(string)
 	default:
-		panic("CharFiled Must be string")
+		err = CharFieldTypeError
+		return err,nil
 
 	}
 	Url ,_ := url.Parse(dest_value)
@@ -595,7 +604,8 @@ func (choice *ChoiceField) ParseTagString(tag string,fieldname string ,dest inte
 	case string:
 		dest_value = dest.(string)
 	default:
-		panic("ChoiceField Must be string")
+		err = CharFieldTypeError
+		return err,nil
 	}
 	if (!strings.HasPrefix(dest_value,"[") && !strings.HasSuffix(dest_value,"]")) || (!strings.HasPrefix(dest_value,"(") && !strings.HasSuffix(dest_value,")")){
 		errormessage[fieldname] = "ChoiceField Format is not valid."
@@ -650,5 +660,50 @@ func (choice *ChoiceField) ParseTagString(tag string,fieldname string ,dest inte
 		choice.ErrorMessage = errormessage
 		return err,nil
 	}
+
+}
+
+
+
+func (date *DateField) HasErrors() bool{
+	return date.HasError != true
+}
+
+
+func (date *DateField) Errors() map[string]interface{} {
+	return date.ErrorMessage
+}
+
+
+func (date *DateField) ParseTagString(tag string,fieldname string ,dest interface{}) (error,interface{}){
+	errormessage := map[string]interface{}{}
+	fields := ParseString(tag)
+	var err error
+	var dest_value string
+	dest_length := len(dest_value)
+	switch dest.(type) {
+	case string:
+		dest_value = dest.(string)
+	default:
+		err = CharFieldTypeError
+		return err,nil
+	}
+	if fields["Required"] == "true" {
+		date.Required = true
+		if dest_length == 0 {
+			err = RequiredError
+			errormessage[fieldname] = errormessage[fieldname].(string) + ";field required"
+			date.HasError = true
+			date.ErrorMessage = errormessage
+			return err,nil
+		}
+
+	}
+
+	t,err1 := time.Parse("2006-01-02",dest_value)
+	if err1 != nil{
+		return err1,nil
+	}
+	return err,t
 
 }
