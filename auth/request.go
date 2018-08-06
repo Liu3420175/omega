@@ -9,9 +9,12 @@ import (
 type Requester struct {
 	// TODO 我们也可以不用他的，自己jiyu http.Request封装一个
 	beego.Controller
-	User            User
-	Session         *SessionStore
-	HasLogin        bool
+	User                  User
+	Session               *SessionStore
+	HasLogin              bool
+	CsrfCookie            string
+	CsrfCookieUsed        bool
+
 }
 
 

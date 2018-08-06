@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"crypto/sha256"
 	"strconv"
-	"strings"
 	"hash"
 	"crypto/hmac"
 
@@ -17,7 +16,7 @@ import (
 )
 
 
-func RandomChoice(choicechars []string) string{
+func RandomChoice(choicechars []byte) byte{
 	length := len(choicechars)
 	random := rand.Intn(length)
 	return choicechars[random]
@@ -25,22 +24,19 @@ func RandomChoice(choicechars []string) string{
 
 
 func GetRandomString(length int) string {
-	AllowedChars := []string{"a","b","c","d","e","f","g","h","i","j","k","l","m",
-	"n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I",
-	"J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","0","1","2","3",
-	"4","5","6","7","8","9"}
+	AllowedChars := []byte(`0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`)
 
 
 	var seek int32
 	t := time.Now()
 	timesamp := t.UnixNano()
 	buf := bytes.Buffer{}
-	buf.WriteString(strings.Join(AllowedChars,""))
+	buf.Write(AllowedChars)
 	buf.WriteString(strconv.FormatInt(timesamp,10))
 	buf.WriteString(conf.SECRETKEY)
-	s := buf.String() // ping jie string
+	s := buf.Bytes()// ping jie string
 	haser := sha256.New()
-	haser.Write([]byte(s))
+	haser.Write(s)
 	shash := haser.Sum(nil)
 	bytesBuffer := bytes.NewBuffer(shash)
 
@@ -50,7 +46,7 @@ func GetRandomString(length int) string {
 	buf2 := bytes.Buffer{}
 	for i:=0;i<length;i++{
 		tmp := RandomChoice(AllowedChars)
-		buf2.WriteString(tmp)
+		buf2.WriteByte(tmp)
 	}
 	return buf2.String()
 }
