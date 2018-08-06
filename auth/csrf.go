@@ -3,6 +3,8 @@ package auth
 import (
 	"strings"
 	"bytes"
+	"regexp"
+	"omega/conf"
 )
 
 var (
@@ -15,6 +17,7 @@ var (
 	CSRF_ALLOWED_CHARS = string(AllowedChars)
 	CSRF_SECRET_LENGTH = 32
 	CSRF_TOKEN_LENGTH = 2 * CSRF_SECRET_LENGTH
+	CSRF_COOKIE_NAME = "csrftoken"
 
 )
 
@@ -86,3 +89,86 @@ func get_new_csrf_token() string{
 }
 
 
+func search(pattern , expr string) bool{
+	reg,err := regexp.Compile(pattern)
+	if err != nil{
+		return false
+	}
+	s := reg.FindString(expr)
+	return s == expr
+}
+
+func sanitize_token(token string) string {
+	/*
+
+	 */
+
+	 if !search("[0-9A-Za-z]+",token){
+	 	return get_new_csrf_token()
+	 }else if len(token) == CSRF_TOKEN_LENGTH{
+	 	return token
+	 }else if len(token) == CSRF_SECRET_LENGTH{
+	 	return salt_cipher_secret(token)
+	 }else{}
+	 return get_new_csrf_token()
+}
+
+
+
+func (request *Requester) get_token() string{
+    /*
+
+     */
+     _,ok := request.CSRFMeta["CSRF_COOKIE"]
+	csrf_secret := ""
+     if ok{
+	 csrf_secret = unsalt_cipher_token(request.CSRFMeta["CSRF_COOKIE"].(string))
+	 }else{
+		 csrf_secret = get_new_csrf_string()
+		 request.CSRFMeta["CSRF_COOKIE"] = salt_cipher_secret(csrf_secret)
+	 }
+	request.CSRFMeta["CSRF_COOKIE_USED"] = true
+	return salt_cipher_secret(csrf_secret)
+}
+
+
+
+func (request *Requester) rotate_token() {
+    /*
+    Changes the CSRF token in use for a request - should be done on login
+    for security purposes.
+     */
+	request.CSRFMeta["CSRF_COOKIE_USED"] = true
+	request.CSRFMeta["CSRF_COOKIE"] = get_new_csrf_token()
+    request.CSRFMeta["CSRF_COOKIE_NEEDS_RESET"] = true
+
+}
+
+
+
+func (request *Requester) gettoken() string {
+	cookie_token := request.Ctx.GetCookie(CSRF_COOKIE_NAME)
+	if cookie_token == ""{
+		return ""
+	}
+	csrf_token := unsalt_cipher_token(cookie_token)
+	if csrf_token != cookie_token {
+		request.CSRFMeta["CSRF_COOKIE_NEEDS_RESET"] = true
+	}
+	return csrf_token
+}
+
+
+func (request *Requester) settoken() {
+     request.Ctx.SetCookie(CSRF_COOKIE_NAME,request.CSRFMeta["CSRF_COOKIE"].(string),
+     	conf.SESSION_COOKIE_AGE,conf.CSRF_COOKIE_PATH,conf.CSRF_COOKIE_DOMAIN,conf.CSRF_COOKIE_SECURE,conf.CSRF_COOKIE_HTTPONLY)
+}
+
+
+
+
+func (request *Requester) CSRFProcess(){
+
+
+
+}

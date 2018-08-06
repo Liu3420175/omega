@@ -23,5 +23,11 @@ const (
 	EMAIL_USERNAME = "xxxx"
 	EMAIL_PASSWORD = "xxxx"
 
+
+	CSRF_COOKIE_AGE = 2 * 60
+    CSRF_COOKIE_DOMAIN = ""
+    CSRF_COOKIE_PATH = "/"
+    CSRF_COOKIE_SECURE = false
+    CSRF_COOKIE_HTTPONLY = false
 )
 

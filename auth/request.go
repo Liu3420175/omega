@@ -12,7 +12,7 @@ type Requester struct {
 	User                  User
 	Session               *SessionStore
 	HasLogin              bool
-	META                  map[string]interface{}
+	CSRFMeta                  map[string]interface{}
 
 }
 
