@@ -15,6 +15,9 @@ import (
 	"encoding/hex"
 )
 
+var (
+	AllowedChars =  []byte(`0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`)
+)
 
 func RandomChoice(choicechars []byte) byte{
 	length := len(choicechars)
@@ -24,8 +27,6 @@ func RandomChoice(choicechars []byte) byte{
 
 
 func GetRandomString(length int) string {
-	AllowedChars := []byte(`0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`)
-
 
 	var seek int32
 	t := time.Now()

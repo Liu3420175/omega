@@ -12,8 +12,7 @@ type Requester struct {
 	User                  User
 	Session               *SessionStore
 	HasLogin              bool
-	CsrfCookie            string
-	CsrfCookieUsed        bool
+	META                  map[string]interface{}
 
 }
 
@@ -33,6 +32,10 @@ func (request *Requester)CommonResponse(code int,r interface{}){
 	return
 }
 
+
+/*
+    每次请求在处理视图函数之前都要设置一些请求对象的参数，比如x-token-id,user,session这些
+ */
 func (request *Requester)ProcessRequest(){
 	// the first oparea
 	heard := request.Ctx.Request.Header
