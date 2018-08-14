@@ -6,8 +6,15 @@ import (
 	"omega/auth"
 	"github.com/astaxie/beego/orm"
 	"omega/common"
+	"time"
 	"fmt"
 )
+
+func sleep(delay time.Duration){
+	fmt.Println("start")
+	time.Sleep(delay)
+	fmt.Println("End")
+}
 
 func (request *Requester) CustomerAccountList() {
 	request.RequireHttpGet()
@@ -44,7 +51,7 @@ func (request *Requester) CustomerAccountList() {
 		"limit" : Limit,
 		"infos" : users,
 	}
-	fmt.Println("response==",request.Ctx.Request.Method)
+	go sleep(10000000000)
 	request.CommonResponse(0,result)
 	return
 

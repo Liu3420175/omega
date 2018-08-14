@@ -151,7 +151,7 @@ func (request *Requester) gettoken() string {
 	if cookie_token == ""{
 		return ""
 	}
-	csrf_token := unsalt_cipher_token(cookie_token)
+	csrf_token := sanitize_token(cookie_token)
 	if csrf_token != cookie_token {
 		request.CSRFMeta["CSRF_COOKIE_NEEDS_RESET"] = true
 	}
@@ -169,6 +169,9 @@ func (request *Requester) settoken() {
 
 func (request *Requester) CSRFProcess(){
 
-
-
+	csrf_token := request.gettoken()
+	if csrf_token != ""{
+		request.CSRFMeta["CSRF_COOKIE"] = csrf_token
+	}
+	
 }
